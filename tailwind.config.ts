@@ -11,14 +11,21 @@ export default {
       colors: {
         gray:{
           DEFAULT: '#4F4C4C',
+          10:'#e3e3e8',
           100: '#3B3A3A',
           200: '#F7F8FC',
-          700: '#E6E7E9'
+          300: '#bebfc2',
+          700: '#E6E7E9',
         },
         gold:{
           DEFAULT:'#A48B01',
-          100:'#EDCD1F'
+          100:'#EDCD1F',
+          200:'#FFD700',
         }
+      },
+      backgroundImage: {
+        'button-gradient-metallic': 
+          'linear-gradient(135deg, #BA9A61, #967238, #BA9A61, #967238)', // Creates a polished effect
       },
       fontSize: {
         'header-sm': '1.25rem', // Small headers

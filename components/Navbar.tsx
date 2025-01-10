@@ -1,14 +1,16 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import CompanyLogo from '../public/logo.png';
-
 
 const Navbar = () => {
   return (
     <div className="w-full bg-white">
       <nav className="bg-white w-full h-full border-gray-100">
         <div className="flex items-center justify-between p-4">
+          {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
             <Image
               src={CompanyLogo}
@@ -19,6 +21,8 @@ const Navbar = () => {
               VIP Spooling
             </span>
           </Link>
+
+          {/* Hamburger Button */}
           <button
             data-collapse-toggle="navbar-default"
             type="button"
@@ -43,40 +47,55 @@ const Navbar = () => {
               />
             </svg>
           </button>
+
+          {/* Links */}
           <div className="hidden w-full md:block md:w-auto" id="navbar-default">
             <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white">
               <li>
-                <Link
-                  href="/"
-                  className="block py-2 px-3 text-gray-900 bg-white rounded hover:bg-gray-200 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
-                  aria-current="page"
-                >
+                <Link href="/" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
                   Dashboard
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/Team"
-                  className="block py-2 px-3 text-gray-900 bg-white rounded hover:bg-gray-200 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
-                >
+                <Link href="/Team" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
                   My Team
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/Templates"
-                  className="block py-2 px-3 text-gray-900 bg-white rounded hover:bg-gray-200 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
-                >
+                <Link href="/Templates" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
                   Templates
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/Settings"
-                  className="block py-2 px-3 text-gray-900 bg-white rounded hover:bg-gray-200 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
+
+              {/* Profile Settings Dropdown */}
+              <li className="relative group">
+                <button
+                  type="button"
+                  className="flex items-center text-sm rounded-full focus:outline-none hover:ring-2 hover:ring-gray-300"
+                  id="user-menu-button"
                 >
-                  Settings
-                </Link>
+                  <Image className="w-8 h-8 rounded-full object-contain" src={CompanyLogo} alt="user photo" />
+                </button>
+
+                {/* Dropdown Menu */}
+                <div className="absolute right-0 mt-2 w-48 z-50 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible">
+                  <div className="px-4 py-3">
+                    <span className="block text-sm text-gray-900">Toby Green</span>
+                    <span className="block text-sm text-gray-500 truncate">toby.green@vipspooling.com</span>
+                  </div>
+                  <ul className="py-2">
+                    <li>
+                      <Link href="/Settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Settings
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        Sign out
+                      </Link>
+                    </li>
+                  </ul>
+                </div>
               </li>
             </ul>
           </div>

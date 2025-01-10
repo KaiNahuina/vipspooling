@@ -36,9 +36,9 @@ const Avatar = () => {
         </div>
         <label
           htmlFor="avatar-upload"
-          className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full cursor-pointer"
+          className="absolute bottom-0 right-0 bg-button-gradient-metallic text-white p-2 rounded-full cursor-pointer"
         >
-          <span className="text-sm">📷</span>
+          <span className="text-sm">Upload</span>
         </label>
         <input
           id="avatar-upload"
