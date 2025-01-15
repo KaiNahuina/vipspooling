@@ -25,7 +25,9 @@ export default {
       },
       backgroundImage: {
         'button-gradient-metallic': 
-          'linear-gradient(135deg, #BA9A61, #967238, #BA9A61, #967238)', // Creates a polished effect
+          'linear-gradient(135deg, #BA9A61, #967238, #BA9A61, #967238)', 
+        'background-gradient': 
+          'linear-gradient(135deg, #4F4C4C, #A48B01)', 
       },
       fontSize: {
         'header-sm': '1.25rem', // Small headers
