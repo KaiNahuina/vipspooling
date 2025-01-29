@@ -6,12 +6,14 @@ import Image from 'next/image';
 import CompanyLogo from '../public/logo.png';
 
 const Navbar = () => {
+
+
   return (
     <div className="w-full bg-white">
       <nav className="bg-white w-full h-full border-gray-100">
         <div className="flex items-center justify-between p-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+          <Link href="/Dashboard" className="flex items-center space-x-3 rtl:space-x-reverse">
             <Image
               src={CompanyLogo}
               className="h-10 w-10 object-contain"
@@ -48,11 +50,11 @@ const Navbar = () => {
             </svg>
           </button>
 
-          {/* Links */}
+          {/* Links */} 
           <div className="hidden w-full md:block md:w-auto" id="navbar-default">
             <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white">
               <li>
-                <Link href="/" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
+                <Link href="/Dashboard" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
                   Dashboard
                 </Link>
               </li>

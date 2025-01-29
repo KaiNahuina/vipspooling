@@ -9,7 +9,7 @@ const Search = () => {
         <input
           type="text"
           placeholder="Search Forms"
-          className="flex-grow bg-transparent border-none outline-none px-3 py-2 text-gray-700"
+          className="flex-grow bg-transparent border-none outline-none px-3 py-2 text-gray-800"
         />
         <button type="submit" className="sr-only">Search</button>
     </div>

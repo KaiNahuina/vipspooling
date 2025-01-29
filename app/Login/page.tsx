@@ -13,7 +13,7 @@ const LoginForm = () => {
 
     // Simple hardcoded login validation
     if (username === 'admin' && password === 'password123') {
-      router.push('/dashboard'); // Redirect to Dashboard page
+      router.push('/Dashboard'); // Redirect to Dashboard page
     } else {
       alert('Invalid username or password');
     }
@@ -23,7 +23,7 @@ const LoginForm = () => {
 
 
   return (
-    <div className="min-h-screen min-w-full flex items-center justify-center bg-background-gradient">
+    <div className="h-screen w-screen flex items-center justify-center bg-background-gradient">
       <div className="min-h-96 px-8 py-6 mt-4 text-left bg-gray-200 dark:bg-white rounded-xl shadow-lg">
         <div className="flex flex-col justify-center items-center h-full select-none">
           {/* Logo Section */}
@@ -45,6 +45,7 @@ const LoginForm = () => {
             </label>
             <input
               type="text"
+              id="username"
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -59,6 +60,7 @@ const LoginForm = () => {
             </label>
             <input
               type="password"
+              id="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
