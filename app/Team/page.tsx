@@ -1,8 +1,12 @@
+"use client";
 import Table from '@/components/Table'
 import React from 'react'
 import Search from '@/components/Search'
+import { useRouter } from 'next/navigation'
 
 const Team = () => {
+  const router = useRouter();
+
   return (
     <div className="w-full">
         <div className="flex justify-center items-center flex-col mb-10">
@@ -16,6 +20,7 @@ const Team = () => {
                   <Search />
 
                   <button
+                    onClick={() => router.push("/Team/add-member")}
                     className="px-6 bg-gold-200 hover:bg-gold-100 text-gray-800 transition ease-in duration-200
                      text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 
                      rounded-lg cursor-pointer select-none h-[56px]"

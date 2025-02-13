@@ -87,12 +87,12 @@ const Navbar = () => {
                   </div>
                   <ul className="py-2">
                     <li>
-                      <Link href="/Settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <Link href="/Settings" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100">
                         Settings
                       </Link>
                     </li>
                     <li>
-                      <Link href="/Login" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <Link href="/Login" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100">
                         Sign out
                       </Link>
                     </li>

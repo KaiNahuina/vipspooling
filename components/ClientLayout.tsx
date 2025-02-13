@@ -7,9 +7,9 @@ import Background from "@/components/Background";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // If user is on the login page, do not show Navbar and Background
+  // Login Page routing logic
   if (pathname === "/Login") {
-    return <div>
+    return <div className="h-screen w-screen bg-background-gradient fixed">
       {children}
       </div>;
   }

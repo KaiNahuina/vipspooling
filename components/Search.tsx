@@ -8,7 +8,7 @@ const Search = () => {
         <FiSearch className="text-gray-500 ml-2" size={20} />
         <input
           type="text"
-          placeholder="Search Forms"
+          placeholder="Search"
           className="flex-grow bg-transparent border-none outline-none px-3 py-2 text-gray-800"
         />
         <button type="submit" className="sr-only">Search</button>
