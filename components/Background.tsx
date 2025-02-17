@@ -2,8 +2,7 @@
 
 const Background = () => {
     return (
-      <div className="fixed inset-0 -z-10 overflow-hidden bg-gray-100 dark:bg-gray-100 transition-colors duration-300 
-       w-full h-full">
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-gray-200 dark:bg-gray-100 transition-colors duration-300 w-full h-full">
         {Array.from({ length: 5 }).map((_, index) => (
         <svg
           key={index}
@@ -13,18 +12,18 @@ const Background = () => {
           preserveAspectRatio="none"
         >
           <defs>
-            {/* Gold Gradient */}
+            {/* Light Mode Gold Gradient */}
             <linearGradient id="goldGradientLight" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style={{ stopColor: "#d4af37", stopOpacity: 1 }} />
-              <stop offset="50%" style={{ stopColor: "#c99c33", stopOpacity: 0.9 }} />
-              <stop offset="100%" style={{ stopColor: "#b8860b", stopOpacity: 1 }} />
+              <stop offset="0%" style={{ stopColor: "#FFD700", stopOpacity: 1 }} />
+              <stop offset="50%" style={{ stopColor: "#EDCD1F", stopOpacity: 0.9 }} />
+              <stop offset="100%" style={{ stopColor: "#A48B01", stopOpacity: 1 }} />
             </linearGradient>
 
             {/* Dark Mode Gold Gradient */}
             <linearGradient id="goldGradientDark" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style={{ stopColor: "#b8860b", stopOpacity: 1 }} />
-              <stop offset="50%" style={{ stopColor: "#a07a22", stopOpacity: 0.9 }} />
-              <stop offset="100%" style={{ stopColor: "#8b5e20", stopOpacity: 1 }} />
+              <stop offset="0%" style={{ stopColor: "#A48B01", stopOpacity: 1 }} />
+              <stop offset="50%" style={{ stopColor: "#967238", stopOpacity: 0.9 }} />
+              <stop offset="100%" style={{ stopColor: "#4F4C4C", stopOpacity: 1 }} />
             </linearGradient>
           </defs>
 
@@ -58,7 +57,7 @@ const Background = () => {
                 key={`dark-${i}`}
                 className="hidden dark:block"
                 fill="none"
-                stroke="#c99c33"
+                stroke="#EDCD1F"
                 strokeWidth={5 - i}
                 opacity={0.7 - i * 0.2}
                 d={`M0,${80 + i * 30} C400,${50 + i * 30} 800,${150 + i * 30} 1440,${
@@ -86,7 +85,7 @@ const Background = () => {
                 key={`dark-detail-${i}`}
                 className="hidden dark:block"
                 fill="none"
-                stroke="#c99c33"
+                stroke="#EDCD1F"
                 strokeWidth="1.8"
                 opacity="0.6"
                 d={`M0,${300 + i * 20} C400,${100 + i * 20} 800,${500 + i * 20} 1440,${
@@ -108,7 +107,7 @@ const Background = () => {
           <path
             className="hidden dark:block"
             fill="none"
-            stroke="#c99c33"
+            stroke="#EDCD1F"
             strokeWidth="3.5"
             opacity="0.75"
             d="M100,50 C500,200 900,0 1300,100"
@@ -120,4 +119,3 @@ const Background = () => {
   };
   
   export default Background;
-  

@@ -8,6 +8,7 @@ export default {
     "./src/**/*.{js,jsx,ts,tsx}",
     "./node_modules/react-tailwindcss-datepicker/dist/index.esm.js"
   ],
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
@@ -17,6 +18,7 @@ export default {
           100: '#3B3A3A',
           200: '#F7F8FC',
           300: '#bebfc2',
+          600: '#5E5C5C',
           700: '#E6E7E9',
         },
         gold:{

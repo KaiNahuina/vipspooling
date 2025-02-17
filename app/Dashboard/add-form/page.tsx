@@ -102,12 +102,12 @@ const NewForm = () => {
     
 
   return (
-    <div className="w-full max-w-3xl flex flex-col items-center bg-white px-4 py-10 mx-auto rounded-[5px]">
+    <div className="w-full max-w-3xl flex flex-col items-center bg-white dark:bg-gray-100 px-4 py-10 mx-auto rounded-[5px]">
         <div className="flex flex-col items-center justify-center gap-2 mb-8">
-          <h1>
+          <h1 className='text-black dark:text-white'>
             New form
           </h1>
-          <h3>
+          <h3 className='text-black dark:text-white'>
             template name goes here
           </h3>
         </div>
@@ -115,7 +115,7 @@ const NewForm = () => {
         <form className="w-full" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
             <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Work Ticket #</label>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Ticket #</label>
                 <input
                   type="text"
                   id="invoicenumber"
@@ -161,7 +161,7 @@ const NewForm = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
             <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Cable Company</label>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company</label>
                 <input
                   type="text"
                   id="cablecompany"
@@ -214,7 +214,7 @@ const NewForm = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8">
             {/*Column 1*/}
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Load/Unload</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Load/Unload</label>
                   <input
                     type="number"
                     id="rate1"
@@ -223,7 +223,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Hours</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
                   <input
                     type="number"
                     id="loadhours"
@@ -232,7 +232,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Total</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
                   <input
                     type="text"
                     id="loadtotal"
@@ -258,7 +258,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Total</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
                   <input
                     type="number"
                     id="milestotal"
@@ -275,7 +275,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Hours</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
                   <input
                     type="number"
                     id="travelhours"
@@ -284,7 +284,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Total</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
                   <input
                     type="number"
                     id="traveltotal"
@@ -301,7 +301,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Hours</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
                   <input
                     type="number"
                     id="standbyhours"
@@ -310,7 +310,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Total</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
                   <input
                     type="number"
                     id="standbytotal"
@@ -327,7 +327,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Hours</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
                   <input
                     type="number"
                     id="laborhours"
@@ -336,7 +336,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Total</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
                   <input
                     type="number"
                     id="labortotal"
@@ -368,7 +368,7 @@ const NewForm = () => {
                     id={id}
                     className="border rounded-lg text-sm outline-none dark:border-gray-200 dark:bg-gray-10"
                   />
-                  <label htmlFor={id} className="text-sm font-medium text-gray-900 dark:text-black">
+                  <label htmlFor={id} className="text-sm font-medium text-gray-900 dark:text-white">
                     {label}
                   </label>
                 </div>
@@ -380,7 +380,7 @@ const NewForm = () => {
 
           {/*Consumables*/}
           <div className="mb-8">
-            <div className="grid grid-cols-4 gap-4 font-medium bg-gray-300 p-2 rounded-md">
+            <div className="grid grid-cols-4 gap-4 font-medium bg-gray-300 p-2 rounded-md mb-2">
               <span>Consumables</span>
               <span>Quantity</span>
               <span>Rate ($)</span>
@@ -393,19 +393,19 @@ const NewForm = () => {
                   value={consumable.item}
                   onChange={(e) => handleConsumableChange(index, "item", e.target.value)}
                   placeholder="Consumable"
-                  className="border p-2 rounded-md"
+                  className="border p-2 rounded-md dark:bg-transparent text-black dark:text-white"
                 />
                 <input
                   type="number"
                   value={consumable.qty}
                   onChange={(e) => handleConsumableChange(index, "qty", Number(e.target.value))}
-                  className="border p-2 rounded-md w-16"
+                  className="border p-2 rounded-md w-16 dark:bg-transparent text-black dark:text-white"
                 />
                 <input
                   type="number"
                   value={consumable.rate}
                   onChange={(e) => handleConsumableChange(index, "rate", Number(e.target.value))}
-                  className="border p-2 rounded-md w-20"
+                  className="border p-2 rounded-md w-20 dark:bg-transparent text-black dark:text-white"
                 />
                 <div className="flex justify-between items-center">
                   <span className="p-2">{consumable.amount.toFixed(2)}</span>
@@ -440,7 +440,7 @@ const NewForm = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Cable Length</label>
+                  <label className="block mb-2 text-sm font-medium text-black dark:text-white">Cable Length</label>
                   <input
                     type="number"
                     id="cablelength"
@@ -449,7 +449,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Reel Number</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reel Number</label>
                   <input
                     type="number"
                     id="reelnumber"
@@ -458,7 +458,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Cable Type</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Type</label>
                   <input
                     type="number"
                     id="cabletype"
@@ -467,7 +467,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Extra Charges</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Extra Charges</label>
                   <input
                     type="number"
                     id="extracharges"
@@ -476,7 +476,7 @@ const NewForm = () => {
                   />
               </div>
               <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Invoice Total</label>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Invoice Total</label>
                   <input
                     type="number"
                     id="invoicetotal"
@@ -485,7 +485,7 @@ const NewForm = () => {
                   />
               </div>
               <div className="mt-2 border-2 border-gray-200">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-black">Customer Signature</label>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Customer Signature</label>
                 {/*Consider adding the toData() and other documentation to help exporting*/}
                 <SignatureCanvas penColor='black'
                   canvasProps={{width: 300, height: 150, className: 'sigCanvas'}} />

@@ -9,8 +9,8 @@ const Navbar = () => {
 
 
   return (
-    <div className="w-full bg-white">
-      <nav className="bg-white w-full h-full border-gray-100">
+    <div className="w-full bg-white dark:bg-gray-100">
+      <nav className="bg-white w-full h-full border-gray-100 dark:bg-gray-100">
         <div className="flex items-center justify-between p-4">
           {/* Logo */}
           <Link href="/Dashboard" className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -19,7 +19,7 @@ const Navbar = () => {
               className="h-10 w-10 object-contain"
               alt="VIP Spooling Logo"
             />
-            <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-gray-900">
+            <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
               VIP Spooling
             </span>
           </Link>
@@ -52,19 +52,19 @@ const Navbar = () => {
 
           {/* Links */} 
           <div className="hidden w-full md:block md:w-auto" id="navbar-default">
-            <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-white md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white">
+            <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-transparent md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
               <li>
-                <Link href="/Dashboard" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
+                <Link href="/Dashboard" className="block py-2 px-3 text-gray-900 dark:text-white hover:text-gold-200">
                   Dashboard
                 </Link>
               </li>
               <li>
-                <Link href="/Team" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
+                <Link href="/Team" className="block py-2 px-3 text-gray-900 dark:text-white hover:text-gold-200">
                   My Team
                 </Link>
               </li>
               <li>
-                <Link href="/Templates" className="block py-2 px-3 text-gray-900 hover:text-blue-700">
+                <Link href="/Templates" className="block py-2 px-3 text-gray-900 dark:text-white hover:text-gold-200">
                   Templates
                 </Link>
               </li>
@@ -73,26 +73,26 @@ const Navbar = () => {
               <li className="relative group">
                 <button
                   type="button"
-                  className="flex items-center text-sm rounded-full focus:outline-none hover:ring-2 hover:ring-gray-300"
+                  className="flex items-center text-sm rounded-full focus:outline-none hover:ring-2 hover:ring-gold-200"
                   id="user-menu-button"
                 >
                   <Image className="w-8 h-8 rounded-full object-contain" src={CompanyLogo} alt="user photo" />
                 </button>
 
                 {/* Dropdown Menu */}
-                <div className="absolute right-0 mt-2 w-48 z-50 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible">
+                <div className="absolute right-0 mt-2 w-48 z-50 text-base list-none bg-white dark:bg-gray-100 divide-y divide-gray-100 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible">
                   <div className="px-4 py-3">
-                    <span className="block text-sm text-gray-900">Toby Green</span>
-                    <span className="block text-sm text-gray-500 truncate">toby.green@vipspooling.com</span>
+                    <span className="block text-sm text-gray-900 dark:text-white">Toby Green</span>
+                    <span className="block text-sm text-gray-500 truncate dark:text-white">toby.green@vipspooling.com</span>
                   </div>
                   <ul className="py-2">
                     <li>
-                      <Link href="/Settings" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100">
+                      <Link href="/Settings" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white">
                         Settings
                       </Link>
                     </li>
                     <li>
-                      <Link href="/Login" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100">
+                      <Link href="/Login" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white">
                         Sign out
                       </Link>
                     </li>

@@ -10,12 +10,12 @@ const Team = () => {
   return (
     <div className="w-full">
         <div className="flex justify-center items-center flex-col mb-10">
-            <h1 className="text-header-lg">My Team</h1>
+            <h1 className="text-header-lg text-black dark:text-white">My Team</h1>
         </div>
-        <div className="bg-white min-h-[360px] pt-[25px] flex-grow flex flex-col justify-between rounded-[5px]">
+        <div className="min-h-[360px] pt-[25px] flex-grow flex flex-col justify-between rounded-[5px] bg-gray-200 dark:bg-gray-100">
             <div className="mb-[25px] px-4 lg:px-8">
               <div className="flex flex-row justify-between items-center">
-                <h2 className="text-2xl font-semibold text-gray-800">Team Info</h2>
+                <h2 className="text-2xl font-semibold text-black dark:text-white">Team Info</h2>
                 <div className="flex items-center gap-4 w-full max-w-md">
                   <Search />
 
