@@ -2,22 +2,30 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
+import {signIn} from "@aws-amplify/auth";
+
 
 const LoginForm = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const router = useRouter();
+  
+  const router = useRouter(); // To handle redirection after login
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Simple hardcoded login validation
-    if (username === 'admin' && password === 'password123') {
-      router.push('/Dashboard'); // Redirect to Dashboard page
-    } else {
-      alert('Invalid username or password');
+  
+    try {
+      const user = await signIn({ username, password }); // Sign in using Cognito
+      console.log("Login successful", user);
+  
+      router.push("/Dashboard"); // Redirect after successful login
+    } catch (err: any) {
+      setError(err.message || "Invalid username or password.");
+      console.error("Login error:", err);
     }
   };
+  
 
 
 
@@ -38,6 +46,8 @@ const LoginForm = () => {
             </p>
           </div>
 
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+
           {/* Username Field */}
           <div className="w-full flex flex-col gap-2">
             <label className="font-semibold text-xs text-gray">
@@ -46,8 +56,8 @@ const LoginForm = () => {
             <input
               type="text"
               id="username"
-              placeholder="Username"
               value={username}
+              placeholder="Username"
               onChange={(e) => setUsername(e.target.value)}
               className="border rounded-lg px-3 py-2 mb-5 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
             />
@@ -61,8 +71,8 @@ const LoginForm = () => {
             <input
               type="password"
               id="password"
-              placeholder="••••••••"
               value={password}
+              placeholder="••••••••"
               onChange={(e) => setPassword(e.target.value)}
               className="border rounded-lg px-3 py-2 mb-5 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
             />
@@ -86,8 +96,10 @@ const LoginForm = () => {
           {/* Login Button */}
           <div>
             <button
+              className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
+              transition ease-in duration-200 text-center text-base font-semibold shadow-md 
+              focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
               onClick={handleLogin}
-              className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
             >
               Login
             </button>

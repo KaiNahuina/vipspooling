@@ -1,8 +1,12 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Avatar from '@/components/Avatar';
+import { signOut } from 'aws-amplify/auth';
+import Auth from "@aws-amplify/auth"
+import { useRouter } from 'next/navigation';
 
 const Settings = () => {
+  const router = useRouter();
   // Initialize dark mode state from localStorage, defaulting to false
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -28,6 +32,12 @@ const Settings = () => {
   const handleDarkModeToggle = () => {
     setIsDarkMode(prevState => !prevState);
   };
+
+  const handleLogout = async () => {
+    await Auth.signOut(); // Sign the user out
+    router.push("/login"); // Redirect to login page
+  };
+  
 
   return (
     <div className="w-full max-w-3xl flex flex-col items-center px-4 py-10 mx-auto bg-white dark:bg-gray-100">
@@ -149,7 +159,9 @@ const Settings = () => {
 
       {/* Save Button */}
       <div className="w-full max-w-md bg-button-gradient-metallic rounded-lg p-4 shadow-md flex items-center justify-center mt-6">
-        <button className="font-medium text-black dark:text-white hover:underline w-full h-full">Save</button>
+        <button className="font-medium text-black dark:text-white hover:underline w-full h-full"
+        onClick={handleLogout}
+        >Log out</button>
       </div>
     </div>
   );
