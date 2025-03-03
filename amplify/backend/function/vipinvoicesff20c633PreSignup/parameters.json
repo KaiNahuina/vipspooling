@@ -1,4 +1,5 @@
 {
   "modules": "email-filter-denylist",
-  "resourceName": "vipinvoicesff20c633PreSignup"
+  "resourceName": "vipinvoicesff20c633PreSignup",
+  "DOMAINDENYLIST": ""
 }

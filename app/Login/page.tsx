@@ -2,8 +2,7 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-import {signIn} from "@aws-amplify/auth";
-
+import {SignInOutput, signIn, confirmSignIn} from "@aws-amplify/auth";
 
 const LoginForm = () => {
   
@@ -11,27 +10,53 @@ const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [newPassword, setNewPassword] = useState(""); // New password state
+  const [isNewPasswordRequired, setIsNewPasswordRequired] = useState(false);
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
-      const user = await signIn({ username, password }); // Sign in using Cognito
-      console.log("Login successful", user);
+      const user = await signIn({ username, password });
   
-      router.push("/Dashboard"); // Redirect after successful login
+      if (user.nextStep?.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
+        const newPassword = prompt("Enter a new password:");
+        if (newPassword) {
+          await confirmSignIn({ challengeResponse: newPassword });
+          console.log("Password confirmed successfully!");
+          router.push("/Dashboard");
+        }
+      }
+      else {
+        console.log("Login successful", user);
+        router.push("/Dashboard");
+      }
     } catch (err: any) {
       setError(err.message || "Invalid username or password.");
       console.error("Login error:", err);
     }
   };
+
+  const handleNewPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      if (newPassword) {
+        await confirmSignIn({ challengeResponse: newPassword });
+        console.log("Password confirmed successfully!");
+        router.push("/Dashboard");
+      }
+    } catch (err: any) {
+      setError(err.message || "Error confirming the new password.");
+      console.error("New password error:", err);
+    }
+  };
   
 
 
-
-
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-background-gradient">
+    <div className="fixed inset-0 flex items-center justify-center bg-background-gradient">
       <div className="min-h-96 px-8 py-6 mt-4 text-left bg-gray-200 dark:bg-white rounded-xl shadow-lg">
         <div className="flex flex-col justify-center items-center h-full select-none">
           {/* Logo Section */}
@@ -78,6 +103,22 @@ const LoginForm = () => {
             />
           </div>
 
+          {isNewPasswordRequired && (
+            <div className="w-full flex flex-col gap-2">
+              <label className="font-semibold text-xs text-gray">
+                New Password
+              </label>
+              <input
+                type="password"
+                id="new-password"
+                value={newPassword}
+                placeholder="••••••••"
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="border rounded-lg px-3 py-2 mb-5 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+              />
+            </div>
+          )}
+
           {/*Keep me logged in section*/}
           <div className="flex items-center mb-4">
             <input 
@@ -94,16 +135,31 @@ const LoginForm = () => {
           </div>
 
           {/* Login Button */}
-          <div>
-            <button
-              className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
-              transition ease-in duration-200 text-center text-base font-semibold shadow-md 
-              focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
-              onClick={handleLogin}
-            >
-              Login
-            </button>
-          </div>
+          {!isNewPasswordRequired ? (
+            <div>
+              <button
+                className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
+                transition ease-in duration-200 text-center text-base font-semibold shadow-md 
+                focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
+                onClick={handleLogin}
+              >
+                Login
+              </button>
+            </div>
+          ) : (
+            <div>
+              <button
+                className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
+                transition ease-in duration-200 text-center text-base font-semibold shadow-md 
+                focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
+                onClick={handleNewPasswordSubmit}
+              >
+                Confirm New Password
+              </button>
+            </div>
+          )}
+
+
         </div>
       </div>
     </div>
@@ -111,3 +167,4 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+

@@ -9,26 +9,46 @@
       "UnauthRoleName": "amplify-vipinvoices-dev-d981e-unauthRole",
       "StackName": "amplify-vipinvoices-dev-d981e",
       "StackId": "arn:aws:cloudformation:us-east-1:009160062364:stack/amplify-vipinvoices-dev-d981e/b56b02e0-f06f-11ef-9816-0ebf2cbec7a5",
-      "AmplifyAppId": "d3t5n7ppl8uokg"
+      "AmplifyAppId": "d3t5n7ppl8uokg",
+      "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-vipinvoices-dev-d981e-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
     },
     "categories": {
       "auth": {
         "vipinvoicesff20c633": {}
       },
       "function": {
-        "vipinvoicesff20c633DefineAuthChallenge": {},
-        "vipinvoicesff20c633CreateAuthChallenge": {},
+        "vipinvoicesff20c633DefineAuthChallenge": {
+          "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
+          "s3Key": "amplify-builds/vipinvoicesff20c633DefineAuthChallenge-354b7634394a4a756646-build.zip"
+        },
+        "vipinvoicesff20c633CreateAuthChallenge": {
+          "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
+          "s3Key": "amplify-builds/vipinvoicesff20c633CreateAuthChallenge-3667347454416a794865-build.zip"
+        },
         "vipinvoicesff20c633CustomMessage": {
           "REDIRECTURL": "http://localhost:3000/Dashboard",
           "EMAILSUBJECT": "Account Activation – Please Verify Your Email",
-          "EMAILMESSAGE": "To complete your registration and activate your account, please click the link below:"
+          "EMAILMESSAGE": "To complete your registration and activate your account, please click the link below:",
+          "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
+          "s3Key": "amplify-builds/vipinvoicesff20c633CustomMessage-647433616c684b663044-build.zip"
         },
         "vipinvoicesff20c633PostConfirmation": {
-          "GROUP": "Operator"
+          "GROUP": "Operator",
+          "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
+          "s3Key": "amplify-builds/vipinvoicesff20c633PostConfirmation-33706255462f4b536d6a-build.zip"
         },
         "vipinvoicesff20c633PreSignup": {
-          "DOMAINDENYLIST": ""
+          "DOMAINDENYLIST": "spam.com",
+          "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
+          "s3Key": "amplify-builds/vipinvoicesff20c633PreSignup-64376633675265497068-build.zip"
+        },
+        "AdminQueriese168a1e6": {
+          "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
+          "s3Key": "amplify-builds/AdminQueriese168a1e6-39754d73626a65395744-build.zip"
         }
+      },
+      "api": {
+        "AdminQueries": {}
       }
     }
   }

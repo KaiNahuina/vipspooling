@@ -12,5 +12,11 @@
   "triggerTemplate": "PreSignup.json.ejs",
   "triggerEventPath": "PreSignup.event.json",
   "roleName": "vipinvoicesff20c633PreSignup",
-  "skipEdit": true
+  "skipEdit": true,
+  "environmentVariableList": [
+    {
+      "cloudFormationParameterName": "DOMAINDENYLIST",
+      "environmentVariableName": "DOMAINDENYLIST"
+    }
+  ]
 }

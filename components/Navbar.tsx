@@ -4,9 +4,25 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import CompanyLogo from '../public/logo.png';
+import { signOut, fetchAuthSession } from 'aws-amplify/auth';
+import { useRouter } from 'next/navigation';
+
 
 const Navbar = () => {
+  const router = useRouter();
 
+
+  const handleLogout = async () => {
+    const user = await fetchAuthSession();
+    if(user){
+      await signOut(); // Sign the user out
+      router.push("/Login"); // Redirect to login page
+    }else{
+      console.log("No session fetch detected")
+    }
+
+  };
+  
 
   return (
     <div className="w-full bg-white dark:bg-gray-100">
@@ -87,16 +103,23 @@ const Navbar = () => {
                   </div>
                   <ul className="py-2">
                     <li>
-                      <Link href="/Settings" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white">
+                      <Link 
+                        href="/Settings" 
+                        className="block w-full px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white"
+                      >
                         Settings
                       </Link>
                     </li>
                     <li>
-                      <Link href="/Login" className="block px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white">
+                      <button 
+                        className="block w-full px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white text-left"
+                        onClick={handleLogout}
+                      >
                         Sign out
-                      </Link>
+                      </button>
                     </li>
                   </ul>
+
                 </div>
               </li>
             </ul>

@@ -127,6 +127,38 @@
     }
   },
   "parameters": {
+    "AMPLIFY_function_AdminQueriese168a1e6_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "AdminQueriese168a1e6"
+        }
+      ]
+    },
+    "AMPLIFY_function_AdminQueriese168a1e6_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "AdminQueriese168a1e6"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633CreateAuthChallenge_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633CreateAuthChallenge"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633CreateAuthChallenge_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633CreateAuthChallenge"
+        }
+      ]
+    },
     "AMPLIFY_function_vipinvoicesff20c633CustomMessage_EMAILMESSAGE": {
       "usedBy": [
         {
@@ -151,6 +183,38 @@
         }
       ]
     },
+    "AMPLIFY_function_vipinvoicesff20c633CustomMessage_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633CustomMessage"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633CustomMessage_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633CustomMessage"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633DefineAuthChallenge_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633DefineAuthChallenge"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633DefineAuthChallenge_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633DefineAuthChallenge"
+        }
+      ]
+    },
     "AMPLIFY_function_vipinvoicesff20c633PostConfirmation_GROUP": {
       "usedBy": [
         {
@@ -159,7 +223,39 @@
         }
       ]
     },
+    "AMPLIFY_function_vipinvoicesff20c633PostConfirmation_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633PostConfirmation"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633PostConfirmation_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633PostConfirmation"
+        }
+      ]
+    },
     "AMPLIFY_function_vipinvoicesff20c633PreSignup_DOMAINDENYLIST": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633PreSignup"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633PreSignup_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "vipinvoicesff20c633PreSignup"
+        }
+      ]
+    },
+    "AMPLIFY_function_vipinvoicesff20c633PreSignup_s3Key": {
       "usedBy": [
         {
           "category": "function",

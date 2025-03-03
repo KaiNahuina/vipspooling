@@ -1,8 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Avatar from '@/components/Avatar';
-import { signOut } from 'aws-amplify/auth';
-import Auth from "@aws-amplify/auth"
+import { signOut, fetchAuthSession } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
 
 const Settings = () => {
@@ -34,8 +33,14 @@ const Settings = () => {
   };
 
   const handleLogout = async () => {
-    await Auth.signOut(); // Sign the user out
-    router.push("/login"); // Redirect to login page
+    const user = await fetchAuthSession();
+    if(user){
+      await signOut(); // Sign the user out
+      router.push("/Login"); // Redirect to login page
+    }else{
+      console.log("No session fetch detected")
+    }
+
   };
   
 
