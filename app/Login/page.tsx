@@ -2,13 +2,14 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-import {SignInOutput, signIn, confirmSignIn} from "@aws-amplify/auth";
+import {SignInOutput, signIn, confirmSignIn, rememberDevice} from "@aws-amplify/auth";
 
 const LoginForm = () => {
   
   const router = useRouter(); // To handle redirection after login
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [error, setError] = useState("");
   const [newPassword, setNewPassword] = useState(""); // New password state
   const [isNewPasswordRequired, setIsNewPasswordRequired] = useState(false);
@@ -19,6 +20,9 @@ const LoginForm = () => {
 
     try {
       const user = await signIn({ username, password });
+      if (keepSignedIn) {
+        await rememberDevice();
+      }
   
       if (user.nextStep?.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
         const newPassword = prompt("Enter a new password:");
@@ -73,6 +77,7 @@ const LoginForm = () => {
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
+          <form onSubmit={handleLogin}>
           {/* Username Field */}
           <div className="w-full flex flex-col gap-2">
             <label className="font-semibold text-xs text-gray">
@@ -124,6 +129,8 @@ const LoginForm = () => {
             <input 
               id="keep-logged-in" 
               type="checkbox" 
+              checked={keepSignedIn}
+              onChange={(e) => setKeepSignedIn(e.target.checked)} // Ensure it's a boolean
               className="h-4 w-4 text-gold-200 border-gray-300 rounded focus:ring-gold-100" 
             />
             <label 
@@ -135,7 +142,6 @@ const LoginForm = () => {
           </div>
 
           {/* Login Button */}
-          {!isNewPasswordRequired ? (
             <div>
               <button
                 className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
@@ -146,22 +152,14 @@ const LoginForm = () => {
                 Login
               </button>
             </div>
-          ) : (
-            <div>
-              <button
-                className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
-                transition ease-in duration-200 text-center text-base font-semibold shadow-md 
-                focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
-                onClick={handleNewPasswordSubmit}
-              >
-                Confirm New Password
-              </button>
-            </div>
-          )}
+          
+          </form>
+          
 
 
         </div>
       </div>
+      
     </div>
   );
 };

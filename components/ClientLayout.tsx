@@ -10,6 +10,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Background from "@/components/Background";
 
+
 function ClientLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const router = useRouter();
@@ -47,7 +48,12 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, pathname, router]);
 
-  if (isAuthenticated === null) return <p>Loading</p>;
+  if (isAuthenticated === null) return (/* From Uiverse.io by Javierrocadev */ 
+  <div className="flex flex-row gap-2">
+    <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce"></div>
+    <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.3s]"></div>
+    <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.5s]"></div>
+  </div>);
 
   // **Handle login page separately (without navbar & background)**
   if (!isAuthenticated && pathname === "/Login") {
@@ -67,7 +73,7 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
         )}
       <div className="mt-10 relative w-full min-h-screen">
         <Background />
-        <div className="relative inset-0 z-10 flex flex-col justify-center items-center px-5 md:px-20 w-full mb-40">
+        <div className="relative inset-0 z-10 flex flex-col justify-center items-center px-5 md:px-20 w-full mt-40 mb-40">
           {children}
         </div>
       </div>
