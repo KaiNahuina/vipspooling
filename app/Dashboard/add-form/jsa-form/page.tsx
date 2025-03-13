@@ -424,7 +424,7 @@ const NewForm = () => {
                 <button
                   className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
                 >
-                  Submit Form
+                  Submit
                 </button>
               </div>
               

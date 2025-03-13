@@ -1,0 +1,109 @@
+type InvoiceForm
+  @model
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin"]
+        operations: [create, update, delete, read]
+      }
+      { allow: groups, groups: ["User"], operations: [create] }
+    ]
+  ) {
+  WorkTicketID: ID! @primaryKey
+  InvoiceDate: AWSDate!
+  Spooler: String!
+  WorkType: String!
+  CableCompanyLocation: String!
+  OilCompany: String!
+  WellNumberName: String!
+  LaborCosts: [LaborCost]!
+  JobType: [String]!
+  Consumables: [Consumable]!
+  Notes: String
+  CableDetails: CableDetail
+  ReelNumber: String!
+  ExtraCharges: Float
+  InvoiceTotal: Float!
+  CustomerSignature: String!
+}
+
+type LaborCost {
+  rate: Float
+  qty: Int
+  amount: Float
+}
+
+type Consumable {
+  item: String
+  qty: Int
+  rate: Float
+  amount: Float
+}
+
+type CableDetail {
+  CableType: String
+  CableLength: Float
+}
+
+type JsaForm
+  @model
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin"]
+        operations: [create, update, delete, read]
+      }
+      { allow: groups, groups: ["User"], operations: [create] }
+    ]
+  ) {
+  CustomerName: String! @primaryKey
+  FormDate: AWSDate!
+  EffectiveDate: AWSDate!
+  Location: String!
+  Personnel: [Person]!
+}
+
+type Person {
+  Role: String!
+  PersonName: String!
+  Signature: String!
+}
+
+type Template
+  @model
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin"]
+        operations: [create, update, delete, read]
+      }
+      { allow: groups, groups: ["User"], operations: [read] }
+    ]
+  ) {
+  TemplateID: ID! @primaryKey
+  Version: String!
+  TemplateDate: AWSDate
+  Content: String
+  file: String! # S3 URL to PDF file
+}
+
+type User
+  @model
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin"]
+        operations: [create, update, delete, read]
+      }
+    ]
+  ) {
+  UserID: ID! @primaryKey
+  Name: String!
+  Email: String!
+  Role: String!
+  phoneNumber: String
+}

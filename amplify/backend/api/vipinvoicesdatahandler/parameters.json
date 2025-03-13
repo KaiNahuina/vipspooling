@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "vipinvoicesdatahandler",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authvipinvoicesff20c633",
+      "Outputs.UserPoolId"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+    "Version": 5,
+    "ElasticsearchWarning": true,
+    "ResolverConfig": {
+        "project": {
+            "ConflictHandler": "OPTIMISTIC_CONCURRENCY",
+            "ConflictDetection": "VERSION"
+        }
+    },
+    "TableNameOverrides": {
+        "InvoiceForm": "InvoiceForm-${env}",
+        "JsaForm": "JsaForm-${env}",
+        "Template": "Template-${env}",
+        "User": "User-${env}"
+    }
+}

@@ -48,7 +48,11 @@
         }
       },
       "api": {
-        "AdminQueries": {}
+        "AdminQueries": {},
+        "vipinvoicesdatahandler": {}
+      },
+      "storage": {
+        "templateBucket": {}
       }
     }
   }

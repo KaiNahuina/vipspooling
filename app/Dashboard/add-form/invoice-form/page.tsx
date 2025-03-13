@@ -83,7 +83,7 @@ const NewForm = () => {
   return (
     <div className="w-full max-w-3xl flex flex-col items-center bg-white dark:bg-gray-100 px-4 py-10 mx-auto rounded-[5px]">
         <div className="flex flex-col items-center justify-center gap-2 mb-8">
-          <h1 className='text-black dark:text-white'>
+          <h1 className='text-black text-3xl dark:text-white'>
             New form
           </h1>
           <h3 className='text-black dark:text-white'>
@@ -429,6 +429,7 @@ const NewForm = () => {
           
           {/*Notes section*/}
           <div className="mb-8">
+          <label className="block mb-2 text-md font-medium text-black dark:text-white">Notes</label>
             <textarea
             className="border-2 border-gray-10 rounded-md w-full"
             />
@@ -488,6 +489,14 @@ const NewForm = () => {
               </div>
             
           </div>
+
+          <div className="flex flex-col items-center justify-center gap-2 mb-8">
+                <button
+                  className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
+                >
+                  Submit
+                </button>
+            </div>
 
         </form>
 

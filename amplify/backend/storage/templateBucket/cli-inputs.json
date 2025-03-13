@@ -1,0 +1,14 @@
+{
+  "resourceName": "templateBucket",
+  "policyUUID": "e71ccea3",
+  "bucketName": "vipinvoices-templates",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

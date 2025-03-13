@@ -30,7 +30,9 @@
     ],
     "aliasAttributes": [],
     "userpoolClientGenerateSecret": false,
-    "userpoolClientRefreshTokenValidity": 30,
+    "userpoolClientRefreshTokenValidity": 1,
+    "userpoolClientAccessTokenValidity": 1,
+    "userpoolClientIdTokenValidity": 1,
     "userpoolClientWriteAttributes": [
       "name",
       "phone_number",
