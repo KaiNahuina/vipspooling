@@ -6,11 +6,15 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from "dayjs";
+import { generateClient } from 'aws-amplify/api';
+import { createJsaForm } from '@/src/graphql/mutations';
+import { CreateJsaFormInput, PersonInput } from '@/src/graphql/API';
+import { useRouter } from 'next/navigation';
 
-
-
+const client = generateClient();
 
 const NewForm = () => {
+    const router = useRouter();
 
     const [formData, setFormData] = useState({
         customerName: "",  // Customer Name
@@ -187,15 +191,92 @@ const NewForm = () => {
     
 
       {/*Form Submission*/}
-      const handleSubmit = (e: React.FormEvent) => {
+      const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log(formData);
+        
+        try {
+            // Check if all required signatures exist
+            const missingSignatures = formData.personnel.some(person => !person.signature);
+            if (missingSignatures) {
+                alert('Please ensure all personnel have signed before submitting.');
+                return;
+            }
+
+            // Format the form data to match the CreateJsaFormInput type
+            const jsaData: CreateJsaFormInput = {
+                CustomerName: formData.customerName,
+                FormDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString(),
+                EffectiveDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString(),
+                Location: formData.location,
+                Personnel: formData.personnel.map(person => ({
+                    Role: person.jobTitle,
+                    PersonName: person.name,
+                    Signature: person.signature
+                } as PersonInput))
+            };
+
+            console.log('Submitting JSA form data:', jsaData);
+
+            // Submit the form data to the database
+            const response = await client.graphql({
+                query: createJsaForm,
+                variables: { input: jsaData }
+            });
+            
+            console.log('Response:', response);
+
+            if (response.data.createJsaForm) {
+                // Clear the form
+                setFormData({
+                    customerName: "",
+                    effectiveDate: "",
+                    location: "",
+                    personnel: [
+                        { name: "", jobTitle: "", signature: "" }
+                    ]
+                });
+                setSelectedDate(null);
+                
+                // Show success message
+                alert('JSA form submitted successfully!');
+            }
+        } catch (error) {
+            console.error('Error submitting JSA form:', error);
+            alert('Error submitting JSA form. Please try again.');
+        }
       };
 
     
 
       return (
-        <div className="w-full max-w-3xl flex flex-col items-center bg-white dark:bg-gray-100 px-4 py-10 mx-auto rounded-[5px]">
+        <>
+          <div className="w-full max-w-3xl mx-auto px-4">
+            <div className="flex items-start">
+              <button
+                type="button"
+                onClick={() => router.push('/Dashboard/add-form')}
+                className="w-16 rounded-2xl h-14 relative group mt-2 mr-2"
+              >
+                <div className="bg-yellow-300 rounded-xl h-12 w-full grid place-items-center absolute left-0 top-0 group-hover:w-full z-10 duration-500">
+                  <svg
+                    width="25px"
+                    height="25px"
+                    viewBox="0 0 1024 1024"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill="#000000"
+                      d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                    ></path>
+                    <path
+                      fill="#000000"
+                      d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                    ></path>
+                  </svg>
+                </div>
+              </button>
+          
+          <div className="w-full max-w-3xl flex flex-col items-center bg-white dark:bg-gray-100 px-4 py-10 mx-auto rounded-[5px]">
             <div className="flex flex-col items-center justify-center gap-2 mb-8">
               <h1 className='text-black dark:text-white'>
                 JSA Form
@@ -210,7 +291,9 @@ const NewForm = () => {
                     <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Customer Name</label>
                     <input
                       type="text"
-                      id="Customer Name"
+                      id="customerName"
+                      value={formData.customerName}
+                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
                       placeholder="Customer Name"
                       className="border border-gray-400 rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
                     />
@@ -219,7 +302,9 @@ const NewForm = () => {
                     <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Customer Location</label>
                     <input
                       type="text"
-                      id="Customer Location"
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       placeholder="Customer Location"
                       className="border border-gray-400 rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
                     />
@@ -232,26 +317,35 @@ const NewForm = () => {
                         value={selectedDate}
                         onChange={handleDateChange}
                         sx={{
+                          width: '100%',
                           "& .MuiOutlinedInput-root": {
-                            backgroundColor: "#f5f5f5", // Custom background color
-                            borderRadius: "8px",
+                            height: '38px',
+                            border: '1px solid #9CA3AF',
+                            borderRadius: '0.5rem',
+                            backgroundColor: 'transparent',
                             "&:hover": {
-                              borderColor: "#1976d2", // Hover color
+                              borderColor: '#9CA3AF',
                             },
+                            "& fieldset": {
+                              border: 'none',
+                            },
+                          },
+                          "& .MuiInputBase-input": {
+                            fontSize: '0.875rem',
+                            padding: '0.5rem 0.75rem',
+                            color: 'inherit',
                           },
                           "& .MuiSvgIcon-root": {
-                            color: "#1976d2", // Calendar icon color
+                            color: 'currentColor',
                           },
-                          "& .MuiPickersDay-root": {
-                            color: "#1976d2", // Date numbers color
-                            "&:hover": {
-                              backgroundColor: "#e3f2fd", // Hover background
-                            },
+                        }}
+                        slotProps={{
+                          textField: {
+                            placeholder: "Select Date",
                           },
                         }}
                       />
                     </LocalizationProvider>
-                    
                 </div>
                 
               </div>
@@ -355,7 +449,7 @@ const NewForm = () => {
                       value={person.name}
                       onChange={(e) => handlePersonnelChange(index, "name", e.target.value)}
                       placeholder="Name"
-                      className="border border-gray-400 p-2 rounded-md min-w-[250px] dark:bg-transparent text-black dark:text-white"
+                      className="border border-gray-400 p-2 rounded-md min-w-[200px] dark:bg-transparent text-black dark:text-white"
                     />
 
     
@@ -429,8 +523,11 @@ const NewForm = () => {
               </div>
               
             </form>
-        </div>
-    )
+            </div>
+            </div>
+          </div>
+        </>
+      )
     
       
 }
