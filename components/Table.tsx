@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 // Define types for the table
 interface TableColumn {
@@ -13,6 +14,7 @@ interface TableProps {
   data?: any[];  // Make data optional
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
+  onPreview?: (file: string) => void;
   isLoading?: boolean;
 }
 
@@ -21,10 +23,27 @@ const Table: React.FC<TableProps> = ({
   data = [], // Provide default empty array
   onEdit, 
   onDelete,
+  onPreview,
   isLoading = false 
 }) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (openDropdownId) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdownId]);
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -45,6 +64,17 @@ const Table: React.FC<TableProps> = ({
     } else {
       setSelectedRows([...selectedRows, id]);
     }
+  };
+
+  const handleDropdownClick = (e: React.MouseEvent, rowId: string) => {
+    e.stopPropagation();
+    const button = e.currentTarget;
+    const rect = button.getBoundingClientRect();
+    setDropdownPosition({
+      top: rect.bottom + window.scrollY,
+      left: rect.left + window.scrollX
+    });
+    setOpenDropdownId(openDropdownId === rowId ? null : rowId);
   };
 
   // Get the ID field based on the table type
@@ -101,7 +131,7 @@ const Table: React.FC<TableProps> = ({
               <tr
                 key={rowId}
                 className={`odd:bg-white even:bg-gray-200 border-b dark:border-gray-700 ${
-                  selectedRows.includes(rowId) ? "bg-blue-100" : ""
+                  selectedRows.includes(rowId) ? "bg-blue-100" : "bg-white"
                 }`}
               >
                 <td className="px-4 py-4">
@@ -114,27 +144,33 @@ const Table: React.FC<TableProps> = ({
                 </td>
                 {columns.map((column) => (
                   <td key={`${rowId}-${column.key}`} className="px-6 py-4 text-gray">
-                    {row[column.key]?.toString() || ''}
+                    {column.key === 'file' && onPreview ? (
+                      <button
+                        type="button"
+                        onClick={(e) => { 
+                        e.stopPropagation();
+                        console.log('Preview button clicked for file:', row[column.key]); 
+                        onPreview(row[column.key])}}
+                        className="text-gray-100 hover:underline rounded-md bg-gold-200 hover:bg-gold-100 px-2 py-2"
+                      >
+                        Preview
+                      </button>
+                    ) : (
+                      row[column.key]?.toString() || ''
+                    )}
                   </td>
                 ))}
                 <td className="px-6 py-4 text-gray">
-                  <div className="flex gap-2">
-                    {onEdit && (
-                      <button
-                        onClick={() => onEdit(row)}
-                        className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        onClick={() => onDelete(row)}
-                        className="font-medium text-red-600 dark:text-red-500 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    )}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                      onClick={(e) => handleDropdownClick(e, rowId)}
+                    >
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -142,6 +178,45 @@ const Table: React.FC<TableProps> = ({
           })}
         </tbody>
       </table>
+
+      {openDropdownId && createPortal(
+        <div 
+          className="fixed z-50 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <div className="py-1" role="menu">
+            {onEdit && (
+              <button
+                onClick={() => {
+                  onEdit(data.find(row => getRowId(row) === openDropdownId));
+                  setOpenDropdownId(null);
+                }}
+                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                role="menuitem"
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={() => {
+                  onDelete(data.find(row => getRowId(row) === openDropdownId));
+                  setOpenDropdownId(null);
+                }}
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                role="menuitem"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

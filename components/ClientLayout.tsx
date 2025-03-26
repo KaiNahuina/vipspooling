@@ -4,12 +4,17 @@ import awsconfig from "../src/aws-exports";
 Amplify.configure(awsconfig);
 
 import { getCurrentUser } from "@aws-amplify/auth";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 import Navbar from "@/components/Navbar";
 import Background from "@/components/Background";
 
+const AuthContext = createContext<{ isAuthenticated: boolean | null }>({
+  isAuthenticated: null,
+});
+
+export const useAuth = () => useContext(AuthContext);
 
 function ClientLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -40,7 +45,7 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [pathname]);
+  }, [pathname, router]);
 
   useEffect(() => {
     if (isAuthenticated && pathname === "/Login") {
@@ -65,19 +70,21 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen min-w-full">
-      {pathname !== "/Login" && (
-          <div className="fixed top-0 left-0 right-0 z-50">
-            <Navbar />
+    <AuthContext.Provider value={{isAuthenticated}}>
+      <div className="min-h-screen min-w-full">
+        {pathname !== "/Login" && (
+            <div className="fixed top-0 left-0 right-0 z-50">
+              <Navbar />
+            </div>
+          )}
+        <div className="mt-10 relative w-full min-h-screen">
+          <Background />
+          <div className="relative inset-0 z-10 flex flex-col justify-center items-center px-5 md:px-20 w-full mt-40 mb-40">
+            {children}
           </div>
-        )}
-      <div className="mt-10 relative w-full min-h-screen">
-        <Background />
-        <div className="relative inset-0 z-10 flex flex-col justify-center items-center px-5 md:px-20 w-full mt-40 mb-40">
-          {children}
         </div>
       </div>
-    </div>
+    </AuthContext.Provider>
   );
 }
 

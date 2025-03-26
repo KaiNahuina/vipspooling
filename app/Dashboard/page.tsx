@@ -4,9 +4,16 @@ import Table from '@/components/Table'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from "next/navigation";
 import { generateClient } from 'aws-amplify/api';
-import { listInvoiceForms } from '@/src/graphql/queries';
-import { deleteInvoiceForm } from '@/src/graphql/mutations';
+import { listInvoiceForms, listJsaForms } from '@/src/graphql/queries';
+import { deleteInvoiceForm, deleteJsaForm } from '@/src/graphql/mutations';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import { Amplify } from 'aws-amplify';
+import awsconfig from '@/src/aws-exports';
 
+// Configure Amplify
+Amplify.configure(awsconfig);
+
+// Initialize the API client
 const client = generateClient();
 
 interface InvoiceForm {
@@ -21,7 +28,19 @@ interface InvoiceForm {
   InvoiceTotal: number;
 }
 
-const columns = [
+interface JsaForm {
+  CustomerName: string;
+  FormDate: string;
+  EffectiveDate: string;
+  Location: string;
+  Personnel: Array<{
+    Role: string;
+    PersonName: string;
+    Signature: string;
+  } | null>;
+}
+
+const invoiceColumns = [
   { key: 'WorkTicketID', header: 'Ticket ID' },
   { key: 'InvoiceDate', header: 'Date' },
   { key: 'Spooler', header: 'Spooler' },
@@ -33,64 +52,161 @@ const columns = [
   { key: 'InvoiceTotal', header: 'Total' },
 ];
 
+const jsaColumns = [
+  { key: 'CustomerName', header: 'Customer Name' },
+  { key: 'FormDate', header: 'Form Date' },
+  { key: 'EffectiveDate', header: 'Effective Date' },
+  { key: 'Location', header: 'Location' },
+];
+
 const Dashboard = () => {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'invoice' | 'jsa'>('invoice');
   const [invoices, setInvoices] = useState<InvoiceForm[]>([]);
+  const [jsaForms, setJsaForms] = useState<JsaForm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInvoices = async () => {
-    setIsLoading(true);
+  const checkAuth = async () => {
     try {
+      const user = await getCurrentUser();
+      return true;
+    } catch (err) {
+      console.error('No signed in user:', err);
+      router.push('/Login');
+      return false;
+    }
+  };
+
+  const fetchJsaForms = async () => {
+    try {
+      const isAuthenticated = await checkAuth();
+      if (!isAuthenticated) return;
+
+      const response = await client.graphql({
+        query: listJsaForms,
+        authMode: 'userPool'
+      });
+
+      if (response.data) {
+        setJsaForms(response.data.listJsaForms.items);
+      }
+    } catch (err) {
+      console.error('Error fetching JSA forms:', err);
+      if (err instanceof Error) {
+        if (err.message.includes('NoSignedUser')) {
+          router.push('/Login');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to fetch JSA forms. Please try again later.');
+      }
+    }
+  };
+
+  const fetchInvoices = async () => {
+    try {
+      const isAuthenticated = await checkAuth();
+      if (!isAuthenticated) return;
+
       const response = await client.graphql({
         query: listInvoiceForms,
         authMode: 'userPool'
       });
-      const data = response.data.listInvoiceForms.items;
-      setInvoices(data);
-      setError(null);
+
+      if (response.data) {
+        setInvoices(response.data.listInvoiceForms.items);
+      }
     } catch (err) {
       console.error('Error fetching invoices:', err);
-      setError('Failed to fetch invoices. Please try again later.');
+      if (err instanceof Error) {
+        if (err.message.includes('NoSignedUser')) {
+          router.push('/Login');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to fetch invoices. Please try again later.');
+      }
+    }
+  };
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await Promise.all([fetchJsaForms(), fetchInvoices()]);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to fetch data. Please try again later.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInvoices();
+    fetchData();
   }, []);
 
-  const handleEdit = (invoice: InvoiceForm) => {
-    router.push(`/Dashboard/edit-form/invoice-form/${invoice.WorkTicketID}`);
+  const handleEdit = (item: InvoiceForm | JsaForm) => {
+    if ('WorkTicketID' in item) {
+      router.push(`/Dashboard/edit-form/invoice-form/${item.WorkTicketID}`);
+    } else {
+      router.push(`/Dashboard/edit-form/jsa-form/${item.CustomerName}`);
+    }
   };
 
-  const handleDelete = async (invoice: InvoiceForm) => {
-    if (!window.confirm('Are you sure you want to delete this invoice?')) {
+  const handleDelete = async (item: InvoiceForm | JsaForm) => {
+    if (!window.confirm('Are you sure you want to delete this form?')) {
       return;
     }
 
     setIsLoading(true);
     try {
-      await client.graphql({
-        query: deleteInvoiceForm,
-        variables: {
-          input: {
-            WorkTicketID: invoice.WorkTicketID
-          }
-        },
-        authMode: 'userPool'
-      });
-      
-      // Refresh the list
-      await fetchInvoices();
+      if ('WorkTicketID' in item) {
+        await client.graphql({
+          query: deleteInvoiceForm,
+          variables: {
+            input: {
+              WorkTicketID: item.WorkTicketID
+            }
+          },
+          authMode: 'userPool'
+        });
+        await fetchInvoices();
+      } else {
+        await client.graphql({
+          query: deleteJsaForm,
+          variables: {
+            input: {
+              CustomerName: item.CustomerName
+            }
+          },
+          authMode: 'userPool'
+        });
+        await fetchJsaForms();
+      }
     } catch (err) {
-      console.error('Error deleting invoice:', err);
-      setError('Failed to delete invoice. Please try again later.');
+      console.error('Error deleting form:', err);
+      setError('Failed to delete form. Please try again later.');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full">
@@ -121,6 +237,42 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+            <li className="me-2" role="presentation">
+              <button
+                className={`inline-block p-4 border-b-2 rounded-t-lg ${
+                  activeTab === 'invoice'
+                    ? 'text-gold-100 border-gold-200 dark:text-gold-100 dark:border-gold-200'
+                    : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+                onClick={() => setActiveTab('invoice')}
+                role="tab"
+                aria-controls="invoice-tab"
+                aria-selected={activeTab === 'invoice'}
+              >
+                Invoice Forms
+              </button>
+            </li>
+            <li role="presentation">
+              <button
+                className={`inline-block p-4 border-b-2 rounded-t-lg ${
+                  activeTab === 'jsa'
+                    ? 'text-gold-100 border-gold-200 dark:text-gold-100 dark:border-gold-200'
+                    : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+                onClick={() => setActiveTab('jsa')}
+                role="tab"
+                aria-controls="jsa-tab"
+                aria-selected={activeTab === 'jsa'}
+              >
+                JSA Forms
+              </button>
+            </li>
+          </ul>
+        </div>
+
         {/* Table Section */}
         <div className="flex-1 overflow-auto px-6 py-4">
           {error && (
@@ -129,8 +281,8 @@ const Dashboard = () => {
             </div>
           )}
           <Table
-            columns={columns}
-            data={invoices}
+            columns={activeTab === 'invoice' ? invoiceColumns : jsaColumns}
+            data={activeTab === 'invoice' ? invoices : jsaForms}
             isLoading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}

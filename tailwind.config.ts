@@ -25,6 +25,7 @@ export default {
           DEFAULT:'#A48B01',
           100:'#EDCD1F',
           200:'#FFD700',
+          300:'#C2A60C'
         }
       },
       backgroundImage: {

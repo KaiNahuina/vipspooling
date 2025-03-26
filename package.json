@@ -9,7 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/core": "^0.38.0",
+    "@aws-amplify/storage": "^6.7.11",
     "@aws-amplify/ui-react": "^6.9.1",
+    "@aws-sdk/client-cognito-identity-provider": "^3.768.0",
+    "@aws-sdk/client-s3": "^3.774.0",
+    "@aws-sdk/s3-request-presigner": "^3.774.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -20,11 +25,12 @@
     "@mui/x-date-pickers": "^7.27.3",
     "aws-amplify": "^6.13.1",
     "dayjs": "^1.11.13",
-    "next": "15.1.1",
-    "react": "^19.0.0",
+    "next": "^15.2.3",
+    "react": "^18.3.1",
     "react-datepicker": "^8.1.0",
-    "react-dom": "^19.0.0",
+    "react-dom": "^18.3.1",
     "react-icons": "^5.4.0",
+    "react-pdf": "^9.2.1",
     "react-router-dom": "^7.0.2",
     "react-signature-canvas": "^1.0.7",
     "react-tailwindcss-datepicker": "^2.0.0"

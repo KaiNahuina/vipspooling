@@ -290,317 +290,317 @@ const NewForm = () => {
           
           <div className="flex-1">
             <div className="w-full flex flex-col items-center bg-white dark:bg-gray-100 px-4 py-10 rounded-[5px]">
-              <div className="flex flex-col items-center justify-center gap-2 mb-8">
+        <div className="flex flex-col items-center justify-center gap-2 mb-8">
                 <h1 className='text-black text-3xl dark:text-white'>
-                  New form
-                </h1>
+            New form
+          </h1>
                 
-              </div>
+        </div>
 
-              <form className="w-full" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
-                  <div className="mb-2">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Ticket #</label>
-                      <input
-                        type="text"
+        <form className="w-full" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
+            <div className="mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Ticket #</label>
+                <input
+                  type="text"
                         id="workTicketNo"
                         value={formData.workTicketNo}
                         onChange={handleInputChange}
-                        placeholder="Work Ticket #"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
+                  placeholder="Work Ticket #"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
 
-                  <div className="mb-2">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                              value={selectedDate}
-                              onChange={handleDateChange}
-                              sx={{
+            <div className="mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DatePicker
+                        value={selectedDate}
+                        onChange={handleDateChange}
+                        sx={{
                                 width: '100%',
-                                "& .MuiOutlinedInput-root": {
+                          "& .MuiOutlinedInput-root": {
                                   height: '38px',
                                   border: '1px solid #9CA3AF',
                                   borderRadius: '0.5rem',
                                   backgroundColor: 'transparent',
-                                  "&:hover": {
+                            "&:hover": {
                                     borderColor: '#9CA3AF',
                                   },
                                   "& fieldset": {
                                     border: 'none',
-                                  },
-                                },
+                            },
+                          },
                                 "& .MuiInputBase-input": {
                                   fontSize: '0.875rem',
                                   padding: '0.5rem 0.75rem',
                                   color: 'inherit',
                                 },
-                                "& .MuiSvgIcon-root": {
+                          "& .MuiSvgIcon-root": {
                                   color: 'currentColor',
                                 },
                               }}
                               slotProps={{
                                 textField: {
                                   placeholder: "Select Date",
-                                },
-                              }}
-                            />
-                          </LocalizationProvider>
-                      
-                  </div>
+                          },
+                        }}
+                      />
+                    </LocalizationProvider>
+                
+            </div>
 
-                  <div>
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler</label>
-                      <input
-                        type="text"
-                        id="spooler"
+            <div>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler</label>
+                <input
+                  type="text"
+                  id="spooler"
                         value={formData.spooler}
                         onChange={handleInputChange}
-                        placeholder="Spooler"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
-                  <div>
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Type</label>
-                      <input
-                        type="text"
+                  placeholder="Spooler"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
+            <div>
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Type</label>
+                <input
+                  type="text"
                         id="workType"
                         value={formData.workType}
                         onChange={handleInputChange}
-                        placeholder="Work Type"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
-                </div>
+                  placeholder="Work Type"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
+          </div>
 
-                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
 
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
-                  <div className="mb-2">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company</label>
-                      <input
-                        type="text"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
+            <div className="mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company</label>
+                <input
+                  type="text"
                         id="cableCompany"
                         value={formData.cableCompany}
                         onChange={handleInputChange}
-                        placeholder="Cable Company"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
-                  <div className="mb-2">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company Location</label>
-                      <input
-                        type="text"
+                  placeholder="Cable Company"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
+            <div className="mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company Location</label>
+                <input
+                  type="text"
                         id="cableCompanyLocation"
                         value={formData.cableCompanyLocation}
                         onChange={handleInputChange}
-                        placeholder="Cable Company Location"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
-                  <div className="mb-2">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Oil Company</label>
-                      <input
-                        type="text"
+                  placeholder="Cable Company Location"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
+            <div className="mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Oil Company</label>
+                <input
+                  type="text"
                         id="oilCompany"
                         value={formData.oilCompany}
                         onChange={handleInputChange}
-                        placeholder="Oil Company"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
-                  <div className="mb-2">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Number</label>
-                      <input
-                        type="text"
+                  placeholder="Oil Company"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
+            <div className="mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Number</label>
+                <input
+                  type="text"
                         id="wellNumber"
                         value={formData.wellNumber}
                         onChange={handleInputChange}
-                        placeholder="Well Number"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
-                  <div className="mb-2">
-                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Name</label>
-                      <input
-                        type="text"
+                  placeholder="Well Number"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
+            <div className="mb-2">
+                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Name</label>
+                <input
+                  type="text"
                         id="wellName"
                         value={formData.wellName}
                         onChange={handleInputChange}
-                        placeholder="Well Name"
-                        className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                      />
-                  </div>
-                </div>
+                  placeholder="Well Name"
+                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                />
+            </div>
+          </div>
 
-                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
 
 
-                {/*Rate, QTY, AMNT*/}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8">
-                  {/*Column 1*/}
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Load/Unload</label>
-                        <input
-                          type="number"
-                          id="rate1"
+          {/*Rate, QTY, AMNT*/}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8">
+            {/*Column 1*/}
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Load/Unload</label>
+                  <input
+                    type="number"
+                    id="rate1"
                           value={formData.rates[0].rate}
                           onChange={(e) => handleRateChange(0, 'rate', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                        <input
-                          type="number"
-                          id="loadhours"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                  <input
+                    type="number"
+                    id="loadhours"
                           value={formData.rates[0].quantity}
                           onChange={(e) => handleRateChange(0, 'quantity', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                        <input
-                          type="text"
-                          id="loadtotal"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                  <input
+                    type="text"
+                    id="loadtotal"
                           value={formData.rates[0].total.toFixed(2)}
                           readOnly
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Miles To</label>
-                        <input
-                          type="number"
-                          id="rate2"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Miles To</label>
+                  <input
+                    type="number"
+                    id="rate2"
                           value={formData.rates[1].rate}
                           onChange={(e) => handleRateChange(1, 'rate', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Miles</label>
-                        <input
-                          type="number"
-                          id="spoolermiles"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Miles</label>
+                  <input
+                    type="number"
+                    id="spoolermiles"
                           value={formData.rates[1].quantity}
                           onChange={(e) => handleRateChange(1, 'quantity', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                        <input
-                          type="number"
-                          id="milestotal"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                  <input
+                    type="number"
+                    id="milestotal"
                           value={formData.rates[1].total.toFixed(2)}
                           readOnly
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Travel Time</label>
-                        <input
-                          type="number"
-                          id="rate3"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Travel Time</label>
+                  <input
+                    type="number"
+                    id="rate3"
                           value={formData.rates[2].rate}
                           onChange={(e) => handleRateChange(2, 'rate', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                        <input
-                          type="number"
-                          id="travelhours"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                  <input
+                    type="number"
+                    id="travelhours"
                           value={formData.rates[2].quantity}
                           onChange={(e) => handleRateChange(2, 'quantity', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                        <input
-                          type="number"
-                          id="traveltotal"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                  <input
+                    type="number"
+                    id="traveltotal"
                           value={formData.rates[2].total.toFixed(2)}
                           readOnly
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Standby Time</label>
-                        <input
-                          type="number"
-                          id="rate4"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Standby Time</label>
+                  <input
+                    type="number"
+                    id="rate4"
                           value={formData.rates[3].rate}
                           onChange={(e) => handleRateChange(3, 'rate', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                        <input
-                          type="number"
-                          id="standbyhours"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                  <input
+                    type="number"
+                    id="standbyhours"
                           value={formData.rates[3].quantity}
                           onChange={(e) => handleRateChange(3, 'quantity', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                        <input
-                          type="number"
-                          id="standbytotal"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                  <input
+                    type="number"
+                    id="standbytotal"
                           value={formData.rates[3].total.toFixed(2)}
                           readOnly
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Labor</label>
-                        <input
-                          type="number"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Labor</label>
+                  <input
+                    type="number"
                           id="rate5"
                           value={formData.rates[4].rate}
                           onChange={(e) => handleRateChange(4, 'rate', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                        <input
-                          type="number"
-                          id="laborhours"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                  <input
+                    type="number"
+                    id="laborhours"
                           value={formData.rates[4].quantity}
                           onChange={(e) => handleRateChange(4, 'quantity', e.target.value)}
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                        <input
-                          type="number"
-                          id="labortotal"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                  <input
+                    type="number"
+                    id="labortotal"
                           value={formData.rates[4].total.toFixed(2)}
                           readOnly
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                </div>
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+          </div>
 
-                
-                
+          
+          
 
-                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
-                
-                {/*Job type checkboxes*/}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-8">
-                    {[
+          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+          
+          {/*Job type checkboxes*/}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-8">
+              {[
                       { id: "Install", label: "Install" },
                       { id: "Pull", label: "Pull" },
                       { id: "GasLift", label: "Gas Lift" },
@@ -609,152 +609,152 @@ const NewForm = () => {
                       { id: "GasInstall", label: "Gas Install" },
                       { id: "CableSpooler", label: "Cable Spooler" },
                       { id: "TechnicianLaydown", label: "Technician Laydown" },
-                    ].map(({ id, label }) => (
-                      <div key={id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id={id}
+              ].map(({ id, label }) => (
+                <div key={id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={id}
                           checked={jobTypeCheckboxes[id as keyof typeof jobTypeCheckboxes]}
                           onChange={() => handleCheckboxChange(id)}
-                          className="border rounded-lg text-sm outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                        <label htmlFor={id} className="text-sm font-medium text-gray-900 dark:text-white">
-                          {label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+                    className="border rounded-lg text-sm outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+                  <label htmlFor={id} className="text-sm font-medium text-gray-900 dark:text-white">
+                    {label}
+                  </label>
+                </div>
+              ))}
+            </div>
 
 
-                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
 
-                {/*Consumables*/}
-                <div className="mb-8">
-                  <div className="grid grid-cols-4 gap-4 font-medium bg-gray-300 p-2 rounded-md mb-2">
-                    <span>Consumables</span>
-                    <span>Quantity</span>
-                    <span>Rate ($)</span>
-                    <span>Total ($)</span>
-                  </div>
-                  {formData.consumables.map((consumable, index) => (
+          {/*Consumables*/}
+          <div className="mb-8">
+            <div className="grid grid-cols-4 gap-4 font-medium bg-gray-300 p-2 rounded-md mb-2">
+              <span>Consumables</span>
+              <span>Quantity</span>
+              <span>Rate ($)</span>
+              <span>Total ($)</span>
+            </div>
+            {formData.consumables.map((consumable, index) => (
                     <div key={index} className="grid grid-cols-4 gap-4 mt-2 items-center">
-                      <input
-                        type="text"
-                        value={consumable.item}
-                        onChange={(e) => handleConsumableChange(index, "item", e.target.value)}
-                        placeholder="Consumable"
-                        className="border p-2 rounded-md dark:bg-transparent text-black dark:text-white"
-                      />
-                      <input
-                        type="number"
-                        value={consumable.qty}
+                <input
+                  type="text"
+                  value={consumable.item}
+                  onChange={(e) => handleConsumableChange(index, "item", e.target.value)}
+                  placeholder="Consumable"
+                  className="border p-2 rounded-md dark:bg-transparent text-black dark:text-white"
+                />
+                <input
+                  type="number"
+                  value={consumable.qty}
                         onChange={(e) => handleConsumableChange(index, "qty", e.target.value)}
                         placeholder="Qty"
-                        className="border p-2 rounded-md w-16 dark:bg-transparent text-black dark:text-white"
-                      />
+                  className="border p-2 rounded-md w-16 dark:bg-transparent text-black dark:text-white"
+                />
                      
 
-                      <input
-                        type="number"
-                        value={consumable.rate}
+                <input
+                  type="number"
+                  value={consumable.rate}
                         onChange={(e) => handleConsumableChange(index, "rate", e.target.value)}
                         placeholder="Rate"
-                        className="border p-2 rounded-md w-20 dark:bg-transparent text-black dark:text-white"
-                      />
-                      <div className="flex justify-between items-center">
-                        <span className="p-2">{consumable.amount.toFixed(2)}</span>
-                        {formData.consumables.length > 1 && (
-                          <button
+                  className="border p-2 rounded-md w-20 dark:bg-transparent text-black dark:text-white"
+                />
+                <div className="flex justify-between items-center">
+                  <span className="p-2">{consumable.amount.toFixed(2)}</span>
+                  {formData.consumables.length > 1 && (
+                    <button
                           type="button"
-                            onClick={() => removeConsumable(index)}
-                            className="text-red-500 hover:text-red-700 text-sm"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  <button
-                    type="button"
-                    onClick={addConsumable}
-                    className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
-                  >
-                    + Add Consumable
-                  </button>
+                      onClick={() => removeConsumable(index)}
+                      className="text-red-500 hover:text-red-700 text-sm"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
+              </div>
+            ))}
 
-                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
-                
-                {/*Notes section*/}
-                <div className="mb-8">
+            <button
+                    type="button"
+              onClick={addConsumable}
+              className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
+            >
+              + Add Consumable
+            </button>
+          </div>
+
+          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+          
+          {/*Notes section*/}
+          <div className="mb-8">
                 <label className="block mb-2 text-md font-medium text-black dark:text-white">Notes</label>
-                  <textarea
+            <textarea
                   id="notes"
                   value={formData.notes}
                   onChange={handleInputChange}
-                  className="border-2 border-gray-10 rounded-md w-full"
-                  />
-                </div>
+            className="border-2 border-gray-10 rounded-md w-full"
+            />
+          </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-black dark:text-white">Cable Length</label>
-                        <input
-                          type="number"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-black dark:text-white">Cable Length</label>
+                  <input
+                    type="number"
                           id="cableLength"
                           value={formData.cableLength}
                           onChange={handleInputChange}
-                          placeholder="Cable Length(ft)"
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reel Number</label>
-                        <input
+                    placeholder="Cable Length(ft)"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reel Number</label>
+                  <input
                           type="text"
                           id="reelNumber"
                           value={formData.reelNumber}
                           onChange={handleInputChange}
-                          placeholder="Reel Number"
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Type</label>
-                        <input
+                    placeholder="Reel Number"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Type</label>
+                  <input
                           type="text"
                           id="cableType"
                           value={formData.cableType}
                           onChange={handleInputChange}
-                          placeholder="Cable Type"
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Extra Charges</label>
-                        <input
-                          type="number"
+                    placeholder="Cable Type"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Extra Charges</label>
+                  <input
+                    type="number"
                           id="extraCharges"
                           value={formData.extraCharges}
                           onChange={handleInputChange}
-                          placeholder="Extra Charges"
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
-                    <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Invoice Total</label>
-                        <input
-                          type="number"
+                    placeholder="Extra Charges"
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
+              <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Invoice Total</label>
+                  <input
+                    type="number"
                           id="invoiceTotal"
                           value={formData.rates.reduce((sum, rate) => sum + rate.total, 0) + 
                                     formData.consumables.reduce((sum, consumable) => sum + consumable.amount, 0) +
                                     Number(formData.extraCharges)}
                           readOnly
-                          className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                        />
-                    </div>
+                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                  />
+              </div>
                     <div className="flex justify-end items-center">
                             {formData.signature ? (
                               <img
@@ -792,8 +792,8 @@ const NewForm = () => {
                     </div>
                           )}
                 
-                </div>
-
+              </div>
+            
                 <div className="flex flex-col items-center justify-center gap-2 mb-8">
                       <button
                         type="submit"
@@ -801,11 +801,11 @@ const NewForm = () => {
                       >
                         Submit
                       </button>
-                </div>
+          </div>
 
-              </form>
+        </form>
 
-            </div>
+    </div>
           </div>
         </div>
       </div>

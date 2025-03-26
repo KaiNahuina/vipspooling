@@ -279,7 +279,7 @@ export type Template = {
   __typename: "Template",
   TemplateID: string,
   Version: string,
-  TemplateDate?: string | null,
+  TemplateDate?: string | null | undefined,
   Content?: string | null,
   file: string,
   createdAt: string,
