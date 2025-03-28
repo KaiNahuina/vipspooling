@@ -1,24 +1,87 @@
-'use client';
+"use client";
 import React, { useState, useEffect } from 'react';
 import Avatar from '@/components/Avatar';
-import { signOut, fetchAuthSession } from 'aws-amplify/auth';
+import { signOut, fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
+import {
+  CognitoIdentityProviderClient,
+  AdminListGroupsForUserCommand,
+} from '@aws-sdk/client-cognito-identity-provider';
+
+interface UserProfile {
+  username: string;
+  email: string;
+  name: string;
+  phoneNumber: string;
+  groups: string[]; // Changed from role to groups
+}
 
 const Settings = () => {
   const router = useRouter();
-  // Initialize dark mode state from localStorage, defaulting to false
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('darkMode') === 'true';
     }
     return false;
   });
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Update localStorage whenever the dark mode state changes
+  // Fetch user profile and groups
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setIsLoading(true);
+        const user = await getCurrentUser();
+        const session = await fetchAuthSession();
+
+        if (!session.credentials) {
+          throw new Error('No credentials available');
+        }
+
+        // Extract user attributes from session
+        const attributes = session.tokens?.idToken?.payload || {};
+        const credentials = {
+          accessKeyId: session.credentials.accessKeyId,
+          secretAccessKey: session.credentials.secretAccessKey,
+          sessionToken: session.credentials.sessionToken,
+        };
+
+        // Fetch user groups from Cognito
+        const cognitoClient = new CognitoIdentityProviderClient({
+          region: 'us-east-1', // Adjust to your region
+          credentials,
+        });
+        const command = new AdminListGroupsForUserCommand({
+          UserPoolId: 'us-east-1_Sk6JKaM2w', // Replace with your User Pool ID
+          Username: user.username,
+          Limit: 60,
+        });
+        const response = await cognitoClient.send(command);
+        const groups = (response.Groups || []).map((group) => group.GroupName || '');
+
+        const profile: UserProfile = {
+          username: user.username,
+          email: attributes['email'] as string || '',
+          name: attributes['name'] as string || '',
+          phoneNumber: attributes['phone_number'] as string || '',
+          groups: groups.length > 0 ? groups : ['User'], // Default to 'User' if no groups
+        };
+        setUserProfile(profile);
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+        router.push('/Login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [router]);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('darkMode', isDarkMode.toString());
-      // Apply dark mode to the body
       if (isDarkMode) {
         document.body.classList.add('dark');
       } else {
@@ -27,39 +90,50 @@ const Settings = () => {
     }
   }, [isDarkMode]);
 
-  // Handle toggle change for dark mode
   const handleDarkModeToggle = () => {
-    setIsDarkMode(prevState => !prevState);
+    setIsDarkMode((prevState) => !prevState);
   };
 
   const handleLogout = async () => {
-    const user = await fetchAuthSession();
-    if(user){
-      await signOut(); // Sign the user out
-      router.push("/Login"); // Redirect to login page
-    }else{
-      console.log("No session fetch detected")
+    try {
+      await signOut();
+      router.push('/Login');
+    } catch (err) {
+      console.error('Error signing out:', err);
     }
-
   };
-  
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex justify-center items-center py-8">
+        <div className="flex flex-row gap-2">
+          <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce"></div>
+          <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.3s]"></div>
+          <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.5s]"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return null;
+  }
 
   return (
     <div className="w-full max-w-3xl flex flex-col items-center px-4 py-10 mx-auto bg-white dark:bg-gray-100">
       {/* Profile Section */}
       <div className="w-full flex flex-col space-y-8 px-4 rounded-lg p-4 shadow-md dark:bg-gray-600">
-        {/* Avatar Upload */}
         <div className="flex items-center justify-center">
           <Avatar />
         </div>
 
-        {/* First Row Container */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Full Name */}
           <div className="flex flex-col w-full">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Full Name</h2>
             <input
-              placeholder="Toby Green"
+              value={userProfile.name || ''}
+              readOnly
               className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
               name="name"
               type="text"
@@ -70,7 +144,8 @@ const Settings = () => {
           <div className="flex flex-col w-full">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Email Address</h2>
             <input
-              placeholder="tobygreen@vipspooling.com"
+              value={userProfile.email || ''}
+              readOnly
               className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
               name="email"
               type="email"
@@ -78,15 +153,14 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Second Row Container */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Role */}
           <div className="flex flex-col w-full">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Role</h2>
             <input
-              placeholder="Admin"
+              value={userProfile.groups || 'None'} // Display groups as comma-separated string
+              readOnly
               className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
-              name="role"
+              name="groups"
               type="text"
             />
           </div>
@@ -95,7 +169,8 @@ const Settings = () => {
           <div className="flex flex-col w-full">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Phone Number</h2>
             <input
-              placeholder="+1(222)333-4444"
+              value={userProfile.phoneNumber || ''}
+              readOnly
               className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
               name="phone"
               type="tel"
@@ -109,7 +184,6 @@ const Settings = () => {
         <h2 className="text-sm sm:text-base text-black dark:text-white">Preferences</h2>
 
         <div className="flex flex-col gap-4">
-          {/* Email Notifications */}
           <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Email Notifications</h2>
             <label className="relative inline-block h-8 w-14 cursor-pointer rounded-full bg-gray-300 dark:bg-gray-500 transition">
@@ -118,7 +192,6 @@ const Settings = () => {
             </label>
           </div>
 
-          {/* Dark Mode */}
           <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Dark Mode</h2>
             <label className="relative inline-block h-8 w-14 cursor-pointer rounded-full bg-gray-300 dark:bg-gray-500 transition">
@@ -140,7 +213,6 @@ const Settings = () => {
         <h2 className="text-sm sm:text-base text-black dark:text-white">Password Preferences</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Change Password */}
           <div className="flex flex-col w-full">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Change Password</h2>
             <input
@@ -150,7 +222,6 @@ const Settings = () => {
             />
           </div>
 
-          {/* Confirm Password */}
           <div className="flex flex-col w-full">
             <h2 className="text-sm sm:text-base text-black dark:text-white">Confirm Password</h2>
             <input
@@ -162,11 +233,14 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Save Button */}
+      {/* Logout Button */}
       <div className="w-full max-w-md bg-button-gradient-metallic rounded-lg p-4 shadow-md flex items-center justify-center mt-6">
-        <button className="font-medium text-black dark:text-white hover:underline w-full h-full"
-        onClick={handleLogout}
-        >Log out</button>
+        <button
+          className="font-medium text-black dark:text-white hover:underline w-full h-full"
+          onClick={handleLogout}
+        >
+          Log out
+        </button>
       </div>
     </div>
   );

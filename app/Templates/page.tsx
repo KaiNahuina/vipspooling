@@ -28,7 +28,7 @@ const getCredentials = async (): Promise<AwsCredentialIdentity> => {
 };
 
 const s3Client = new S3Client({
-  region: 'us-east-1', // Replace with your region from aws-exports.js
+  region: 'us-east-1',
   credentials: getCredentials,
 });
 
@@ -37,7 +37,6 @@ interface Template {
   TemplateDate?: string | null;
   Content: string;
   file: string; // S3 URI (e.g., "s3://vipinvoices-templatesd981e-dev/JSAForm.pdf")
-  
 }
 
 const TemplateColumns = [
@@ -47,7 +46,6 @@ const TemplateColumns = [
   { key: 'file', header: 'File' },
 ];
 
-// Helper function to extract S3 key from URI
 const extractS3Key = (s3Uri: string): string => {
   const parts = s3Uri.split('s3://vipinvoices-templatesd981e-dev/');
   return parts.length > 1 ? parts[1] : s3Uri;
@@ -88,7 +86,7 @@ const Templates = () => {
           TemplateID: template.TemplateID,
           TemplateDate: template.TemplateDate ?? null,
           Content: template.Content || '',
-          file: template.file, // S3 URI from DynamoDB
+          file: template.file,
         }));
         console.log('Fetched templates from DynamoDB:', fetchedTemplates);
         setTemplates(fetchedTemplates);
@@ -129,7 +127,7 @@ const Templates = () => {
     }
 
     try {
-      const s3Key = extractS3Key(fileKey); // Extract key from S3 URI
+      const s3Key = extractS3Key(fileKey);
       console.log('Extracted S3 key:', s3Key);
 
       const command = new GetObjectCommand({
@@ -150,6 +148,7 @@ const Templates = () => {
     }
   };
 
+  // Note: handleDelete is unused now, but keeping it for reference
   const handleDelete = async (item: Template) => {
     if (!window.confirm('Are you sure you want to delete this form?')) return;
 
@@ -175,21 +174,33 @@ const Templates = () => {
   return (
     <div className="w-full flex flex-col items-center space-y-8 px-4">
       <div className="flex justify-center items-center flex-col mb-10">
-        <h1 className="text-header-lg text-center text-black dark:text-white">Assign Forms and Plans</h1>
+        <h1 className="text-header-lg text-center text-black dark:text-white">Templates and Pricing Plans</h1>
       </div>
 
       <div className="w-full max-w-4xl bg-white rounded-lg p-4 shadow-md flex items-center justify-center">
         <Previewer src={selectedFileUrl || Logo} />
       </div>
 
+      <div className="w-full max-w-4xl rounded-lg p-4 flex items-center justify-center">
+          <button
+              onClick={() => router.push("/Dashboard/add-form")} /*Change path to request form page*/
+             className="px-6 bg-gold-200 hover:bg-gold-100 text-gray-DEFAULT transition ease-in duration-200
+              text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 
+              rounded-lg cursor-pointer select-none h-[56px]"
+          >
+                Request New Form or Pricing plan
+          </button>
+      </div>
+
       <div className="w-full max-w-4xl bg-white rounded-lg shadow-md overflow-x-auto">
-        <Table
-          columns={TemplateColumns}
-          data={templates}
-          isLoading={isLoading}
-          onDelete={handleDelete}
-          onPreview={handlePreview}
-        />
+      <Table
+        columns={TemplateColumns}
+        data={templates}
+        isLoading={isLoading}
+        onPreview={handlePreview}
+        showActions={false}
+        showCheckboxes={false}
+      />
       </div>
     </div>
   );

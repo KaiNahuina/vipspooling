@@ -1,19 +1,17 @@
 "use client";
-import Search from '@/components/Search'
-import Table from '@/components/Table'
-import React, { useEffect, useState } from 'react'
+import Search from '@/components/Search';
+import Table from '@/components/Table';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { generateClient } from 'aws-amplify/api';
 import { listInvoiceForms, listJsaForms } from '@/src/graphql/queries';
 import { deleteInvoiceForm, deleteJsaForm } from '@/src/graphql/mutations';
-import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import { getCurrentUser } from 'aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import awsconfig from '@/src/aws-exports';
 
-// Configure Amplify
 Amplify.configure(awsconfig);
 
-// Initialize the API client
 const client = generateClient();
 
 interface InvoiceForm {
@@ -49,7 +47,6 @@ const invoiceColumns = [
   { key: 'OilCompany', header: 'Oil Company' },
   { key: 'WellNumberName', header: 'Well Number/Name' },
   { key: 'ReelNumber', header: 'Reel Number' },
-  { key: 'InvoiceTotal', header: 'Total' },
 ];
 
 const jsaColumns = [
@@ -66,10 +63,11 @@ const Dashboard = () => {
   const [jsaForms, setJsaForms] = useState<JsaForm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>(''); 
 
   const checkAuth = async () => {
     try {
-      const user = await getCurrentUser();
+      await getCurrentUser();
       return true;
     } catch (err) {
       console.error('No signed in user:', err);
@@ -85,7 +83,7 @@ const Dashboard = () => {
 
       const response = await client.graphql({
         query: listJsaForms,
-        authMode: 'userPool'
+        authMode: 'userPool',
       });
 
       if (response.data) {
@@ -93,15 +91,7 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error('Error fetching JSA forms:', err);
-      if (err instanceof Error) {
-        if (err.message.includes('NoSignedUser')) {
-          router.push('/Login');
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError('Failed to fetch JSA forms. Please try again later.');
-      }
+      setError('Failed to fetch JSA forms. Please try again later.');
     }
   };
 
@@ -112,7 +102,7 @@ const Dashboard = () => {
 
       const response = await client.graphql({
         query: listInvoiceForms,
-        authMode: 'userPool'
+        authMode: 'userPool',
       });
 
       if (response.data) {
@@ -120,22 +110,13 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error('Error fetching invoices:', err);
-      if (err instanceof Error) {
-        if (err.message.includes('NoSignedUser')) {
-          router.push('/Login');
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError('Failed to fetch invoices. Please try again later.');
-      }
+      setError('Failed to fetch invoices. Please try again later.');
     }
   };
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
-    
     try {
       await Promise.all([fetchJsaForms(), fetchInvoices()]);
     } catch (err) {
@@ -159,32 +140,22 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (item: InvoiceForm | JsaForm) => {
-    if (!window.confirm('Are you sure you want to delete this form?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this form?')) return;
 
     setIsLoading(true);
     try {
       if ('WorkTicketID' in item) {
         await client.graphql({
           query: deleteInvoiceForm,
-          variables: {
-            input: {
-              WorkTicketID: item.WorkTicketID
-            }
-          },
-          authMode: 'userPool'
+          variables: { input: { WorkTicketID: item.WorkTicketID } },
+          authMode: 'userPool',
         });
         await fetchInvoices();
       } else {
         await client.graphql({
           query: deleteJsaForm,
-          variables: {
-            input: {
-              CustomerName: item.CustomerName
-            }
-          },
-          authMode: 'userPool'
+          variables: { input: { CustomerName: item.CustomerName } },
+          authMode: 'userPool',
         });
         await fetchJsaForms();
       }
@@ -196,8 +167,29 @@ const Dashboard = () => {
     }
   };
 
+  const filterData = <T extends InvoiceForm | JsaForm>(items: T[]): T[] => {
+    if (!searchQuery) return items;
+    const query = searchQuery.toLowerCase();
+    return items.filter((item) =>
+      Object.values(item).some((value) =>
+        value && typeof value === 'string' && value.toLowerCase().includes(query)
+      )
+    );
+  };
+
+  const filteredInvoices = filterData(invoices);
+  const filteredJsaForms = filterData(jsaForms);
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="w-full flex justify-center items-center py-8">
+        <div className="flex flex-row gap-2">
+          <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce"></div>
+          <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.3s]"></div>
+          <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.5s]"></div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -210,21 +202,18 @@ const Dashboard = () => {
 
   return (
     <div className="w-full h-full">
-      {/* Dashboard Title */}
       <div className="flex justify-center items-center flex-col mb-6">
         <h1 className="text-header-lg text-gray-100 dark:text-gray-10">Dashboard</h1>
       </div>
 
-      {/* Main Content Container */}
       <div className="bg-gray-200 dark:bg-gray-100 rounded-[5px] shadow-lg flex flex-col h-[calc(100%-200px)]">
-        {/* Header Section */}
         <div className="p-6 border-b border-gray-300 dark:border-gray-700">
           <div className="flex flex-row justify-between items-center">
             <h2 className="text-2xl font-semibold text-gray-DEFAULT dark:text-gray-10">
               Recent Forms
             </h2>
             <div className="flex items-center gap-4 w-full max-w-md">
-              <Search />
+              <Search onSearch={setSearchQuery} />
               <button
                 onClick={() => router.push("/Dashboard/add-form")}
                 className="px-6 bg-gold-200 hover:bg-gold-100 text-gray-DEFAULT transition ease-in duration-200
@@ -237,7 +226,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="border-b border-gray-200 dark:border-gray-700">
           <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
             <li className="me-2" role="presentation">
@@ -273,7 +261,6 @@ const Dashboard = () => {
           </ul>
         </div>
 
-        {/* Table Section */}
         <div className="flex-1 overflow-auto px-6 py-4">
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
@@ -282,7 +269,7 @@ const Dashboard = () => {
           )}
           <Table
             columns={activeTab === 'invoice' ? invoiceColumns : jsaColumns}
-            data={activeTab === 'invoice' ? invoices : jsaForms}
+            data={activeTab === 'invoice' ? filteredInvoices : filteredJsaForms}
             isLoading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
@@ -291,6 +278,6 @@ const Dashboard = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Dashboard;

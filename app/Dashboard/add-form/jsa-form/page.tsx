@@ -464,6 +464,7 @@ const NewForm = () => {
                         />
                       ) : (
                         <button
+                        type="button"
                           onClick={() => openSignatureModal(index)}
                           className="border px-4 py-2 rounded-md bg-gray-300 dark:bg-gray-800 text-black dark:text-white"
                         >
@@ -505,6 +506,7 @@ const NewForm = () => {
     
                 {/* Add personnel button */}
                 <button
+                  type='button'
                   onClick={addPersonnel}
                   className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
                 >

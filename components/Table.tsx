@@ -1,9 +1,7 @@
-'use client';
-
+"use client";
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-// Define types for the table
 interface TableColumn {
   key: string;
   header: string;
@@ -11,27 +9,30 @@ interface TableColumn {
 
 interface TableProps {
   columns: TableColumn[];
-  data?: any[];  // Make data optional
+  data?: any[];
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
   onPreview?: (file: string) => void;
   isLoading?: boolean;
+  showActions?: boolean; // Existing prop for Actions column
+  showCheckboxes?: boolean; // New prop for Checkboxes column
 }
 
-const Table: React.FC<TableProps> = ({ 
-  columns, 
-  data = [], // Provide default empty array
-  onEdit, 
+const Table: React.FC<TableProps> = ({
+  columns,
+  data = [],
+  onEdit,
   onDelete,
   onPreview,
-  isLoading = false 
+  isLoading = false,
+  showActions = true,
+  showCheckboxes = true, // Default to true for backward compatibility
 }) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
-  // Add click outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (openDropdownId) {
@@ -49,8 +50,7 @@ const Table: React.FC<TableProps> = ({
     if (isAllSelected) {
       setSelectedRows([]);
     } else {
-      // Only map if data exists and has items
-      const ids = data?.length > 0 
+      const ids = data?.length > 0
         ? data.map((row) => row.id || row.WorkTicketID || row.CustomerName || row.TemplateID || row.UserID).filter(Boolean)
         : [];
       setSelectedRows(ids);
@@ -72,12 +72,11 @@ const Table: React.FC<TableProps> = ({
     const rect = button.getBoundingClientRect();
     setDropdownPosition({
       top: rect.bottom + window.scrollY,
-      left: rect.left + window.scrollX
+      left: rect.left + window.scrollX,
     });
     setOpenDropdownId(openDropdownId === rowId ? null : rowId);
   };
 
-  // Get the ID field based on the table type
   const getRowId = (row: any): string => {
     return row.id || row.WorkTicketID || row.CustomerName || row.TemplateID || row.UserID || 'no-id';
   };
@@ -94,7 +93,6 @@ const Table: React.FC<TableProps> = ({
     );
   }
 
-  // Show message when no data is available
   if (!data || data.length === 0) {
     return (
       <div className="w-full text-center py-8 text-gray-500">
@@ -108,20 +106,26 @@ const Table: React.FC<TableProps> = ({
       <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <thead className="text-xs text-gray uppercase bg-gray-700 dark:bg-gray-300 dark:text-gray-100">
           <tr>
-            <th className="px-4 py-4">
-              <input
-                type="checkbox"
-                checked={isAllSelected}
-                onChange={handleSelectAll}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-              />
-            </th>
+            {showCheckboxes && (
+              <th className="px-4 py-4">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                />
+              </th>
+            )}
             {columns.map((column) => (
               <th key={column.key} scope="col" className="px-6 py-3">
                 {column.header}
               </th>
             ))}
-            <th scope="col" className="px-6 py-3">Actions</th>
+            {showActions && (
+              <th scope="col" className="px-6 py-3">
+                Actions
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -131,26 +135,29 @@ const Table: React.FC<TableProps> = ({
               <tr
                 key={rowId}
                 className={`odd:bg-white even:bg-gray-200 border-b dark:border-gray-700 ${
-                  selectedRows.includes(rowId) ? "bg-blue-100" : "bg-white"
+                  showCheckboxes && selectedRows.includes(rowId) ? "bg-blue-100" : "bg-white"
                 }`}
               >
-                <td className="px-4 py-4">
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.includes(rowId)}
-                    onChange={() => handleRowSelect(rowId)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                </td>
+                {showCheckboxes && (
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.includes(rowId)}
+                      onChange={() => handleRowSelect(rowId)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                  </td>
+                )}
                 {columns.map((column) => (
                   <td key={`${rowId}-${column.key}`} className="px-6 py-4 text-gray">
                     {column.key === 'file' && onPreview ? (
                       <button
                         type="button"
-                        onClick={(e) => { 
-                        e.stopPropagation();
-                        console.log('Preview button clicked for file:', row[column.key]); 
-                        onPreview(row[column.key])}}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log('Preview button clicked for file:', row[column.key]);
+                          onPreview(row[column.key]);
+                        }}
                         className="text-gray-100 hover:underline rounded-md bg-gold-200 hover:bg-gold-100 px-2 py-2"
                       >
                         Preview
@@ -160,39 +167,46 @@ const Table: React.FC<TableProps> = ({
                     )}
                   </td>
                 ))}
-                <td className="px-6 py-4 text-gray">
-                  <div className="relative">
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-                      onClick={(e) => handleDropdownClick(e, rowId)}
-                    >
-                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
+                {showActions && (
+                  <td className="px-6 py-4 text-gray">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                        onClick={(e) => handleDropdownClick(e, rowId)}
+                      >
+                        <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                )}
               </tr>
             );
           })}
         </tbody>
       </table>
 
-      {openDropdownId && createPortal(
-        <div 
+      {showActions && openDropdownId && createPortal(
+        <div
           className="fixed z-50 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5"
           style={{
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`,
-            transform: 'translateX(-50%)'
+            transform: 'translateX(-50%)',
           }}
         >
           <div className="py-1" role="menu">
             {onEdit && (
               <button
                 onClick={() => {
-                  onEdit(data.find(row => getRowId(row) === openDropdownId));
+                  onEdit(data.find((row) => getRowId(row) === openDropdownId));
                   setOpenDropdownId(null);
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -204,7 +218,7 @@ const Table: React.FC<TableProps> = ({
             {onDelete && (
               <button
                 onClick={() => {
-                  onDelete(data.find(row => getRowId(row) === openDropdownId));
+                  onDelete(data.find((row) => getRowId(row) === openDropdownId));
                   setOpenDropdownId(null);
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
