@@ -4,13 +4,14 @@ import { schema } from './schema';
 
 
 
-const { InvoiceForm, JsaForm, Template, User, LaborCost, Consumable, CableDetail, Person } = initSchema(schema);
+const { InvoiceForm, JsaForm, Template, User, PricingPlan, LaborCost, Consumable, CableDetail, Person } = initSchema(schema);
 
 export {
   InvoiceForm,
   JsaForm,
   Template,
   User,
+  PricingPlan,
   LaborCost,
   Consumable,
   CableDetail,

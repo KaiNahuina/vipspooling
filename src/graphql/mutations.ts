@@ -365,3 +365,69 @@ export const deleteUser = /* GraphQL */ `mutation DeleteUser(
   APITypes.DeleteUserMutationVariables,
   APITypes.DeleteUserMutation
 >;
+export const createPricingPlan = /* GraphQL */ `mutation CreatePricingPlan(
+  $input: CreatePricingPlanInput!
+  $condition: ModelPricingPlanConditionInput
+) {
+  createPricingPlan(input: $input, condition: $condition) {
+    id
+    PlanID
+    PlanDate
+    Description
+    file
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreatePricingPlanMutationVariables,
+  APITypes.CreatePricingPlanMutation
+>;
+export const updatePricingPlan = /* GraphQL */ `mutation UpdatePricingPlan(
+  $input: UpdatePricingPlanInput!
+  $condition: ModelPricingPlanConditionInput
+) {
+  updatePricingPlan(input: $input, condition: $condition) {
+    id
+    PlanID
+    PlanDate
+    Description
+    file
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdatePricingPlanMutationVariables,
+  APITypes.UpdatePricingPlanMutation
+>;
+export const deletePricingPlan = /* GraphQL */ `mutation DeletePricingPlan(
+  $input: DeletePricingPlanInput!
+  $condition: ModelPricingPlanConditionInput
+) {
+  deletePricingPlan(input: $input, condition: $condition) {
+    id
+    PlanID
+    PlanDate
+    Description
+    file
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeletePricingPlanMutationVariables,
+  APITypes.DeletePricingPlanMutation
+>;

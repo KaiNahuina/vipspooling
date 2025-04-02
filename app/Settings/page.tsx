@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import Avatar from '@/components/Avatar';
-import { signOut, fetchAuthSession, getCurrentUser } from 'aws-amplify/auth';
+import { signOut, fetchAuthSession, getCurrentUser, updatePassword } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
 import {
   CognitoIdentityProviderClient,
@@ -13,7 +12,7 @@ interface UserProfile {
   email: string;
   name: string;
   phoneNumber: string;
-  groups: string[]; // Changed from role to groups
+  groups: string[];
 }
 
 const Settings = () => {
@@ -26,8 +25,11 @@ const Settings = () => {
   });
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPasswordFields, setShowPasswordFields] = useState(false); // Toggle for password fields
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Fetch user profile and groups
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -39,7 +41,6 @@ const Settings = () => {
           throw new Error('No credentials available');
         }
 
-        // Extract user attributes from session
         const attributes = session.tokens?.idToken?.payload || {};
         const credentials = {
           accessKeyId: session.credentials.accessKeyId,
@@ -47,9 +48,8 @@ const Settings = () => {
           sessionToken: session.credentials.sessionToken,
         };
 
-        // Fetch user groups from Cognito
         const cognitoClient = new CognitoIdentityProviderClient({
-          region: 'us-east-1', // Adjust to your region
+          region: 'us-east-1',
           credentials,
         });
         const command = new AdminListGroupsForUserCommand({
@@ -64,8 +64,8 @@ const Settings = () => {
           username: user.username,
           email: attributes['email'] as string || '',
           name: attributes['name'] as string || '',
-          phoneNumber: attributes['phone_number'] as string || '',
-          groups: groups.length > 0 ? groups : ['User'], // Default to 'User' if no groups
+          phoneNumber: attributes['phone_number'] as string || 'No Associated Phone Number',
+          groups: groups.length > 0 ? groups : ['User'],
         };
         setUserProfile(profile);
       } catch (err) {
@@ -94,12 +94,45 @@ const Settings = () => {
     setIsDarkMode((prevState) => !prevState);
   };
 
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      alert('New password and confirm password do not match!');
+      return;
+    }
+    if (!oldPassword || !newPassword) {
+      alert('Please fill in all password fields!');
+      return;
+    }
+    try {
+      const user = await getCurrentUser();
+      await updatePassword({ oldPassword, newPassword });
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowPasswordFields(false);
+      alert('Password changed successfully!');
+    } catch (err) {
+      console.error('Error changing password:', err);
+      alert('Failed to change password.');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
       router.push('/Login');
     } catch (err) {
       console.error('Error signing out:', err);
+    }
+  };
+
+  const togglePasswordFields = () => {
+    setShowPasswordFields((prev) => !prev);
+    // Reset fields when hiding
+    if (showPasswordFields) {
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
     }
   };
 
@@ -120,127 +153,163 @@ const Settings = () => {
   }
 
   return (
-    <div className="w-full max-w-3xl flex flex-col items-center px-4 py-10 mx-auto bg-white dark:bg-gray-100">
-      {/* Profile Section */}
-      <div className="w-full flex flex-col space-y-8 px-4 rounded-lg p-4 shadow-md dark:bg-gray-600">
-        <div className="flex items-center justify-center">
-          <Avatar />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Full Name */}
-          <div className="flex flex-col w-full">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Full Name</h2>
-            <input
-              value={userProfile.name || ''}
-              readOnly
-              className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
-              name="name"
-              type="text"
-            />
-          </div>
-
-          {/* Email Address */}
-          <div className="flex flex-col w-full">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Email Address</h2>
-            <input
-              value={userProfile.email || ''}
-              readOnly
-              className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
-              name="email"
-              type="email"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col w-full">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Role</h2>
-            <input
-              value={userProfile.groups || 'None'} // Display groups as comma-separated string
-              readOnly
-              className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
-              name="groups"
-              type="text"
-            />
-          </div>
-
-          {/* Phone Number */}
-          <div className="flex flex-col w-full">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Phone Number</h2>
-            <input
-              value={userProfile.phoneNumber || ''}
-              readOnly
-              className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
-              name="phone"
-              type="tel"
-            />
-          </div>
-        </div>
+    <div className="w-full h-full">
+      <div className="flex justify-center items-center flex-col mb-6">
+        <h1 className="text-header-lg text-gray-100 dark:text-gray-10">Settings</h1>
       </div>
 
-      {/* Preferences Section */}
-      <div className="w-full flex flex-col space-y-8 px-4 rounded-lg p-4 shadow-md mt-8 dark:bg-gray-600">
-        <h2 className="text-sm sm:text-base text-black dark:text-white">Preferences</h2>
-
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Email Notifications</h2>
-            <label className="relative inline-block h-8 w-14 cursor-pointer rounded-full bg-gray-300 dark:bg-gray-500 transition">
-              <input className="peer sr-only" id="EmailNotifications" type="checkbox" />
-              <span className="absolute inset-y-0 left-0 m-1 h-6 w-6 rounded-full bg-gray-300 dark:bg-gray-500 transition-all peer-checked:left-6 peer-checked:bg-white"></span>
-            </label>
+      <div className="w-full max-w-3xl flex flex-col items-center px-4 py-10 mx-auto bg-white dark:bg-gray-100">
+        {/* Profile Section */}
+        <div className="w-full flex flex-col space-y-8 px-4 rounded-lg p-4 shadow-md dark:bg-gray-600">
+          <div className="flex items-center justify-center mb-4">
+            <h2 className="text-header-lg text-gray-100 dark:text-gray-10">Account Details</h2>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Dark Mode</h2>
-            <label className="relative inline-block h-8 w-14 cursor-pointer rounded-full bg-gray-300 dark:bg-gray-500 transition">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col w-full">
+              <h2 className="text-sm sm:text-base text-black dark:text-white">Full Name</h2>
               <input
-                className="peer sr-only"
-                id="DarkMode"
-                type="checkbox"
-                checked={isDarkMode}
-                onChange={handleDarkModeToggle}
+                value={userProfile.name || ''}
+                readOnly
+                className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
+                name="name"
+                type="text"
               />
-              <span className="absolute inset-y-0 left-0 m-1 h-6 w-6 rounded-full bg-gray-300 dark:bg-gray-500 transition-all peer-checked:left-6 peer-checked:bg-white"></span>
-            </label>
+            </div>
+
+            <div className="flex flex-col w-full">
+              <h2 className="text-sm sm:text-base text-black dark:text-white">Email Address</h2>
+              <input
+                value={userProfile.email || ''}
+                readOnly
+                className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
+                name="email"
+                type="email"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col w-full">
+              <h2 className="text-sm sm:text-base text-black dark:text-white">Role</h2>
+              <input
+                value={userProfile.groups.join(', ') || 'None'} // Display groups as comma-separated string
+                readOnly
+                className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
+                name="groups"
+                type="text"
+              />
+            </div>
+
+            <div className="flex flex-col w-full">
+              <h2 className="text-sm sm:text-base text-black dark:text-white">Phone Number</h2>
+              <input
+                value={userProfile.phoneNumber || ''}
+                readOnly
+                className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
+                name="phone"
+                type="tel"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Password Preferences */}
-      <div className="w-full flex flex-col space-y-8 px-4 rounded-lg p-4 shadow-md mt-8 dark:bg-gray-600">
-        <h2 className="text-sm sm:text-base text-black dark:text-white">Password Preferences</h2>
+        {/* Preferences Section */}
+        <div className="w-full flex flex-col space-y-8 px-4 rounded-lg p-4 shadow-md mt-8 dark:bg-gray-600">
+          <h2 className="text-sm sm:text-base text-black dark:text-white">Preferences</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col w-full">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Change Password</h2>
-            <input
-              className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
-              name="changepassword"
-              type="password"
-            />
-          </div>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
+              <h2 className="text-sm sm:text-base text-black dark:text-white">Email Notifications</h2>
+              <label className="relative inline-block h-8 w-14 cursor-pointer rounded-full bg-gray-300 dark:bg-gray-500 transition">
+                <input className="peer sr-only" id="EmailNotifications" type="checkbox" />
+                <span className="absolute inset-y-0 left-0 m-1 h-6 w-6 rounded-full bg-gray-300 dark:bg-gray-500 transition-all peer-checked:left-6 peer-checked:bg-white"></span>
+              </label>
+            </div>
 
-          <div className="flex flex-col w-full">
-            <h2 className="text-sm sm:text-base text-black dark:text-white">Confirm Password</h2>
-            <input
-              className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
-              name="confirmpassword"
-              type="password"
-            />
+            <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
+              <h2 className="text-sm sm:text-base text-black dark:text-white">Dark Mode</h2>
+              <label className="relative inline-block h-8 w-14 cursor-pointer rounded-full bg-gray-300 dark:bg-gray-500 transition">
+                <input
+                  className="peer sr-only"
+                  id="DarkMode"
+                  type="checkbox"
+                  checked={isDarkMode}
+                  onChange={handleDarkModeToggle}
+                />
+                <span className="absolute inset-y-0 left-0 m-1 h-6 w-6 rounded-full bg-gray-300 dark:bg-gray-500 transition-all peer-checked:left-6 peer-checked:bg-white"></span>
+              </label>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Logout Button */}
-      <div className="w-full max-w-md bg-button-gradient-metallic rounded-lg p-4 shadow-md flex items-center justify-center mt-6">
-        <button
-          className="font-medium text-black dark:text-white hover:underline w-full h-full"
-          onClick={handleLogout}
-        >
-          Log out
-        </button>
+        {/* Password Preferences */}
+        <div className="w-full flex flex-col space-y-8 px-4 rounded-lg p-4 shadow-md mt-8 dark:bg-gray-600">
+          <h2 className="text-sm sm:text-base text-black dark:text-white">Password Preferences</h2>
+
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={togglePasswordFields}
+              className="w-full max-w-xs mx-auto bg-gold-200 hover:bg-gold-100 text-gray-800 transition ease-in duration-200 text-center text-base font-semibold shadow-md rounded-lg py-2"
+            >
+              {showPasswordFields ? 'Cancel' : 'Change Password'}
+            </button>
+
+            {showPasswordFields && (
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex flex-col w-full">
+                  <h2 className="text-sm sm:text-base text-black dark:text-white">Old Password</h2>
+                  <input
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
+                    name="oldpassword"
+                    type="password"
+                  />
+                </div>
+
+                <div className="flex flex-col w-full">
+                  <h2 className="text-sm sm:text-base text-black dark:text-white">New Password</h2>
+                  <input
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
+                    name="newpassword"
+                    type="password"
+                  />
+                </div>
+
+                <div className="flex flex-col w-full">
+                  <h2 className="text-sm sm:text-base text-black dark:text-white">Confirm New Password</h2>
+                  <input
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="px-3 w-full text-sm sm:text-base bg-gray-700 dark:bg-gray-600 text-black dark:text-white p-2 border border-white/10 rounded-md outline-none focus:ring-2 focus:ring-gold"
+                    name="confirmpassword"
+                    type="password"
+                  />
+                </div>
+
+                <button
+                  onClick={handlePasswordChange}
+                  className="w-full max-w-xs mx-auto bg-gold-200 hover:bg-gold-100 text-gray-800 transition ease-in duration-200 text-center text-base font-semibold shadow-md rounded-lg py-2"
+                >
+                  Confirm
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Logout Button */}
+        <div className="w-full max-w-md bg-button-gradient-metallic rounded-lg p-4 shadow-md flex items-center justify-center mt-6">
+          <button
+            className="font-medium text-black dark:text-white hover:underline w-full h-full"
+            onClick={handleLogout}
+          >
+            Log out
+          </button>
+        </div>
       </div>
     </div>
   );

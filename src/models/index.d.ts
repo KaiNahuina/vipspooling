@@ -1,4 +1,4 @@
-import { ModelInit, MutableModel, __modelMeta__, CustomIdentifier } from "@aws-amplify/datastore";
+import { ModelInit, MutableModel, __modelMeta__, CustomIdentifier, OptionallyManagedIdentifier } from "@aws-amplify/datastore";
 // @ts-ignore
 import { LazyLoading, LazyLoadingDisabled } from "@aws-amplify/datastore";
 
@@ -224,4 +224,38 @@ export declare type User = LazyLoading extends LazyLoadingDisabled ? EagerUser :
 
 export declare const User: (new (init: ModelInit<User>) => User) & {
   copyOf(source: User, mutator: (draft: MutableModel<User>) => MutableModel<User> | void): User;
+}
+
+type EagerPricingPlan = {
+  readonly [__modelMeta__]: {
+    identifier: OptionallyManagedIdentifier<PricingPlan, 'id'>;
+    readOnlyFields: 'createdAt' | 'updatedAt';
+  };
+  readonly id: string;
+  readonly PlanID: string;
+  readonly PlanDate?: string | null;
+  readonly Description?: string | null;
+  readonly file: string;
+  readonly createdAt?: string | null;
+  readonly updatedAt?: string | null;
+}
+
+type LazyPricingPlan = {
+  readonly [__modelMeta__]: {
+    identifier: OptionallyManagedIdentifier<PricingPlan, 'id'>;
+    readOnlyFields: 'createdAt' | 'updatedAt';
+  };
+  readonly id: string;
+  readonly PlanID: string;
+  readonly PlanDate?: string | null;
+  readonly Description?: string | null;
+  readonly file: string;
+  readonly createdAt?: string | null;
+  readonly updatedAt?: string | null;
+}
+
+export declare type PricingPlan = LazyLoading extends LazyLoadingDisabled ? EagerPricingPlan : LazyPricingPlan
+
+export declare const PricingPlan: (new (init: ModelInit<PricingPlan>) => PricingPlan) & {
+  copyOf(source: PricingPlan, mutator: (draft: MutableModel<PricingPlan>) => MutableModel<PricingPlan> | void): PricingPlan;
 }

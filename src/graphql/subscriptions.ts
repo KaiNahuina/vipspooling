@@ -335,3 +335,66 @@ export const onDeleteUser = /* GraphQL */ `subscription OnDeleteUser($filter: Mo
   APITypes.OnDeleteUserSubscriptionVariables,
   APITypes.OnDeleteUserSubscription
 >;
+export const onCreatePricingPlan = /* GraphQL */ `subscription OnCreatePricingPlan(
+  $filter: ModelSubscriptionPricingPlanFilterInput
+) {
+  onCreatePricingPlan(filter: $filter) {
+    id
+    PlanID
+    PlanDate
+    Description
+    file
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreatePricingPlanSubscriptionVariables,
+  APITypes.OnCreatePricingPlanSubscription
+>;
+export const onUpdatePricingPlan = /* GraphQL */ `subscription OnUpdatePricingPlan(
+  $filter: ModelSubscriptionPricingPlanFilterInput
+) {
+  onUpdatePricingPlan(filter: $filter) {
+    id
+    PlanID
+    PlanDate
+    Description
+    file
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdatePricingPlanSubscriptionVariables,
+  APITypes.OnUpdatePricingPlanSubscription
+>;
+export const onDeletePricingPlan = /* GraphQL */ `subscription OnDeletePricingPlan(
+  $filter: ModelSubscriptionPricingPlanFilterInput
+) {
+  onDeletePricingPlan(filter: $filter) {
+    id
+    PlanID
+    PlanDate
+    Description
+    file
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeletePricingPlanSubscriptionVariables,
+  APITypes.OnDeletePricingPlanSubscription
+>;

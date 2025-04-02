@@ -1,28 +1,55 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import CompanyLogo from '../public/logo.png';
-import { signOut, fetchAuthSession } from 'aws-amplify/auth';
+import { signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
 
+interface UserProfile {
+  email: string;
+  name: string;
+}
 
 const Navbar = () => {
   const router = useRouter();
-
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogout = async () => {
-    const user = await fetchAuthSession();
-    if(user){
-      await signOut(); // Sign the user out
-      router.push("/Login"); // Redirect to login page
-    }else{
-      console.log("No session fetch detected")
+    try {
+      await signOut();
+      router.push('/Login');
+    } catch (err) {
+      console.error('Error signing out:', err);
     }
-
   };
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setIsLoading(true);
+        const user = await getCurrentUser();
+        const attributes = await fetchUserAttributes(); // Fetch user attributes directly
   
+        console.log('User Attributes:', attributes);
+  
+        const profile: UserProfile = {
+          email: attributes['email'] || 'No email',
+          name: attributes['name'] || 'No name',
+        };
+        setUserProfile(profile);
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+        router.push('/Login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUserProfile();
+  }, [router]);
 
   return (
     <div className="w-full bg-white dark:bg-gray-100">
@@ -66,7 +93,7 @@ const Navbar = () => {
             </svg>
           </button>
 
-          {/* Links */} 
+          {/* Links */}
           <div className="hidden w-full md:block md:w-auto" id="navbar-default">
             <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-transparent md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0">
               <li>
@@ -98,20 +125,24 @@ const Navbar = () => {
                 {/* Dropdown Menu */}
                 <div className="absolute right-0 mt-2 w-48 z-50 text-base list-none bg-white dark:bg-gray-100 divide-y divide-gray-100 rounded-lg shadow opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible">
                   <div className="px-4 py-3">
-                    <span className="block text-sm text-gray-900 dark:text-white">Toby Green</span>
-                    <span className="block text-sm text-gray-500 truncate dark:text-white">toby.green@vipspooling.com</span>
+                    <span className="block text-sm text-gray-900 dark:text-white">
+                      {userProfile?.name || 'Loading...'}
+                    </span>
+                    <span className="block text-sm text-gray-500 truncate dark:text-white">
+                      {userProfile?.email || 'Loading...'}
+                    </span>
                   </div>
                   <ul className="py-2">
                     <li>
-                      <Link 
-                        href="/Settings" 
+                      <Link
+                        href="/Settings"
                         className="block w-full px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white"
                       >
                         Settings
                       </Link>
                     </li>
                     <li>
-                      <button 
+                      <button
                         className="block w-full px-4 py-2 text-sm text-gray-900 hover:bg-gray-100 dark:text-white text-left"
                         onClick={handleLogout}
                       >
@@ -119,7 +150,6 @@ const Navbar = () => {
                       </button>
                     </li>
                   </ul>
-
                 </div>
               </li>
             </ul>

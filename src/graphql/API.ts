@@ -279,7 +279,7 @@ export type Template = {
   __typename: "Template",
   TemplateID: string,
   Version: string,
-  TemplateDate?: string | null | undefined,
+  TemplateDate?: string | null,
   Content?: string | null,
   file: string,
   createdAt: string,
@@ -350,6 +350,56 @@ export type UpdateUserInput = {
 
 export type DeleteUserInput = {
   UserID: string,
+  _version?: number | null,
+};
+
+export type CreatePricingPlanInput = {
+  id?: string | null,
+  PlanID: string,
+  PlanDate?: string | null,
+  Description?: string | null,
+  file: string,
+  _version?: number | null,
+};
+
+export type ModelPricingPlanConditionInput = {
+  PlanID?: ModelStringInput | null,
+  PlanDate?: ModelStringInput | null,
+  Description?: ModelStringInput | null,
+  file?: ModelStringInput | null,
+  and?: Array< ModelPricingPlanConditionInput | null > | null,
+  or?: Array< ModelPricingPlanConditionInput | null > | null,
+  not?: ModelPricingPlanConditionInput | null,
+  _deleted?: ModelBooleanInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+};
+
+export type PricingPlan = {
+  __typename: "PricingPlan",
+  id: string,
+  PlanID: string,
+  PlanDate?: string | null,
+  Description?: string | null,
+  file: string,
+  createdAt: string,
+  updatedAt: string,
+  _version: number,
+  _deleted?: boolean | null,
+  _lastChangedAt: number,
+};
+
+export type UpdatePricingPlanInput = {
+  id: string,
+  PlanID?: string | null,
+  PlanDate?: string | null,
+  Description?: string | null,
+  file?: string | null,
+  _version?: number | null,
+};
+
+export type DeletePricingPlanInput = {
+  id: string,
   _version?: number | null,
 };
 
@@ -470,6 +520,27 @@ export type ModelUserConnection = {
   startedAt?: number | null,
 };
 
+export type ModelPricingPlanFilterInput = {
+  id?: ModelIDInput | null,
+  PlanID?: ModelStringInput | null,
+  PlanDate?: ModelStringInput | null,
+  Description?: ModelStringInput | null,
+  file?: ModelStringInput | null,
+  createdAt?: ModelStringInput | null,
+  updatedAt?: ModelStringInput | null,
+  and?: Array< ModelPricingPlanFilterInput | null > | null,
+  or?: Array< ModelPricingPlanFilterInput | null > | null,
+  not?: ModelPricingPlanFilterInput | null,
+  _deleted?: ModelBooleanInput | null,
+};
+
+export type ModelPricingPlanConnection = {
+  __typename: "ModelPricingPlanConnection",
+  items:  Array<PricingPlan | null >,
+  nextToken?: string | null,
+  startedAt?: number | null,
+};
+
 export type ModelSubscriptionInvoiceFormFilterInput = {
   WorkTicketID?: ModelSubscriptionIDInput | null,
   InvoiceDate?: ModelSubscriptionStringInput | null,
@@ -572,6 +643,19 @@ export type ModelSubscriptionUserFilterInput = {
   updatedAt?: ModelSubscriptionStringInput | null,
   and?: Array< ModelSubscriptionUserFilterInput | null > | null,
   or?: Array< ModelSubscriptionUserFilterInput | null > | null,
+  _deleted?: ModelBooleanInput | null,
+};
+
+export type ModelSubscriptionPricingPlanFilterInput = {
+  id?: ModelSubscriptionIDInput | null,
+  PlanID?: ModelSubscriptionStringInput | null,
+  PlanDate?: ModelSubscriptionStringInput | null,
+  Description?: ModelSubscriptionStringInput | null,
+  file?: ModelSubscriptionStringInput | null,
+  createdAt?: ModelSubscriptionStringInput | null,
+  updatedAt?: ModelSubscriptionStringInput | null,
+  and?: Array< ModelSubscriptionPricingPlanFilterInput | null > | null,
+  or?: Array< ModelSubscriptionPricingPlanFilterInput | null > | null,
   _deleted?: ModelBooleanInput | null,
 };
 
@@ -912,6 +996,69 @@ export type DeleteUserMutation = {
     Email: string,
     Role: string,
     phoneNumber?: string | null,
+    createdAt: string,
+    updatedAt: string,
+    _version: number,
+    _deleted?: boolean | null,
+    _lastChangedAt: number,
+  } | null,
+};
+
+export type CreatePricingPlanMutationVariables = {
+  input: CreatePricingPlanInput,
+  condition?: ModelPricingPlanConditionInput | null,
+};
+
+export type CreatePricingPlanMutation = {
+  createPricingPlan?:  {
+    __typename: "PricingPlan",
+    id: string,
+    PlanID: string,
+    PlanDate?: string | null,
+    Description?: string | null,
+    file: string,
+    createdAt: string,
+    updatedAt: string,
+    _version: number,
+    _deleted?: boolean | null,
+    _lastChangedAt: number,
+  } | null,
+};
+
+export type UpdatePricingPlanMutationVariables = {
+  input: UpdatePricingPlanInput,
+  condition?: ModelPricingPlanConditionInput | null,
+};
+
+export type UpdatePricingPlanMutation = {
+  updatePricingPlan?:  {
+    __typename: "PricingPlan",
+    id: string,
+    PlanID: string,
+    PlanDate?: string | null,
+    Description?: string | null,
+    file: string,
+    createdAt: string,
+    updatedAt: string,
+    _version: number,
+    _deleted?: boolean | null,
+    _lastChangedAt: number,
+  } | null,
+};
+
+export type DeletePricingPlanMutationVariables = {
+  input: DeletePricingPlanInput,
+  condition?: ModelPricingPlanConditionInput | null,
+};
+
+export type DeletePricingPlanMutation = {
+  deletePricingPlan?:  {
+    __typename: "PricingPlan",
+    id: string,
+    PlanID: string,
+    PlanDate?: string | null,
+    Description?: string | null,
+    file: string,
     createdAt: string,
     updatedAt: string,
     _version: number,
@@ -1321,6 +1468,83 @@ export type SyncUsersQuery = {
   } | null,
 };
 
+export type GetPricingPlanQueryVariables = {
+  id: string,
+};
+
+export type GetPricingPlanQuery = {
+  getPricingPlan?:  {
+    __typename: "PricingPlan",
+    id: string,
+    PlanID: string,
+    PlanDate?: string | null,
+    Description?: string | null,
+    file: string,
+    createdAt: string,
+    updatedAt: string,
+    _version: number,
+    _deleted?: boolean | null,
+    _lastChangedAt: number,
+  } | null,
+};
+
+export type ListPricingPlansQueryVariables = {
+  id?: string | null,
+  filter?: ModelPricingPlanFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+  sortDirection?: ModelSortDirection | null,
+};
+
+export type ListPricingPlansQuery = {
+  listPricingPlans?:  {
+    __typename: "ModelPricingPlanConnection",
+    items:  Array< {
+      __typename: "PricingPlan",
+      id: string,
+      PlanID: string,
+      PlanDate?: string | null,
+      Description?: string | null,
+      file: string,
+      createdAt: string,
+      updatedAt: string,
+      _version: number,
+      _deleted?: boolean | null,
+      _lastChangedAt: number,
+    } | null >,
+    nextToken?: string | null,
+    startedAt?: number | null,
+  } | null,
+};
+
+export type SyncPricingPlansQueryVariables = {
+  filter?: ModelPricingPlanFilterInput | null,
+  limit?: number | null,
+  nextToken?: string | null,
+  lastSync?: number | null,
+};
+
+export type SyncPricingPlansQuery = {
+  syncPricingPlans?:  {
+    __typename: "ModelPricingPlanConnection",
+    items:  Array< {
+      __typename: "PricingPlan",
+      id: string,
+      PlanID: string,
+      PlanDate?: string | null,
+      Description?: string | null,
+      file: string,
+      createdAt: string,
+      updatedAt: string,
+      _version: number,
+      _deleted?: boolean | null,
+      _lastChangedAt: number,
+    } | null >,
+    nextToken?: string | null,
+    startedAt?: number | null,
+  } | null,
+};
+
 export type OnCreateInvoiceFormSubscriptionVariables = {
   filter?: ModelSubscriptionInvoiceFormFilterInput | null,
 };
@@ -1646,6 +1870,66 @@ export type OnDeleteUserSubscription = {
     Email: string,
     Role: string,
     phoneNumber?: string | null,
+    createdAt: string,
+    updatedAt: string,
+    _version: number,
+    _deleted?: boolean | null,
+    _lastChangedAt: number,
+  } | null,
+};
+
+export type OnCreatePricingPlanSubscriptionVariables = {
+  filter?: ModelSubscriptionPricingPlanFilterInput | null,
+};
+
+export type OnCreatePricingPlanSubscription = {
+  onCreatePricingPlan?:  {
+    __typename: "PricingPlan",
+    id: string,
+    PlanID: string,
+    PlanDate?: string | null,
+    Description?: string | null,
+    file: string,
+    createdAt: string,
+    updatedAt: string,
+    _version: number,
+    _deleted?: boolean | null,
+    _lastChangedAt: number,
+  } | null,
+};
+
+export type OnUpdatePricingPlanSubscriptionVariables = {
+  filter?: ModelSubscriptionPricingPlanFilterInput | null,
+};
+
+export type OnUpdatePricingPlanSubscription = {
+  onUpdatePricingPlan?:  {
+    __typename: "PricingPlan",
+    id: string,
+    PlanID: string,
+    PlanDate?: string | null,
+    Description?: string | null,
+    file: string,
+    createdAt: string,
+    updatedAt: string,
+    _version: number,
+    _deleted?: boolean | null,
+    _lastChangedAt: number,
+  } | null,
+};
+
+export type OnDeletePricingPlanSubscriptionVariables = {
+  filter?: ModelSubscriptionPricingPlanFilterInput | null,
+};
+
+export type OnDeletePricingPlanSubscription = {
+  onDeletePricingPlan?:  {
+    __typename: "PricingPlan",
+    id: string,
+    PlanID: string,
+    PlanDate?: string | null,
+    Description?: string | null,
+    file: string,
     createdAt: string,
     updatedAt: string,
     _version: number,

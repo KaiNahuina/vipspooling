@@ -12,10 +12,10 @@ interface TableProps {
   data?: any[];
   onEdit?: (item: any) => void;
   onDelete?: (item: any) => void;
-  onPreview?: (file: string) => void;
+  onPreview?: (item: any) => void; // Change from (file: string) to (item: any)
   isLoading?: boolean;
-  showActions?: boolean; // Existing prop for Actions column
-  showCheckboxes?: boolean; // New prop for Checkboxes column
+  showActions?: boolean;
+  showCheckboxes?: boolean;
 }
 
 const Table: React.FC<TableProps> = ({
@@ -26,7 +26,7 @@ const Table: React.FC<TableProps> = ({
   onPreview,
   isLoading = false,
   showActions = true,
-  showCheckboxes = true, // Default to true for backward compatibility
+  showCheckboxes = true,
 }) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
@@ -35,15 +35,10 @@ const Table: React.FC<TableProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (openDropdownId) {
-        setOpenDropdownId(null);
-      }
+      if (openDropdownId) setOpenDropdownId(null);
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdownId]);
 
   const handleSelectAll = () => {
@@ -59,11 +54,9 @@ const Table: React.FC<TableProps> = ({
   };
 
   const handleRowSelect = (id: string) => {
-    if (selectedRows.includes(id)) {
-      setSelectedRows(selectedRows.filter((rowId) => rowId !== id));
-    } else {
-      setSelectedRows([...selectedRows, id]);
-    }
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
+    );
   };
 
   const handleDropdownClick = (e: React.MouseEvent, rowId: string) => {
@@ -155,8 +148,8 @@ const Table: React.FC<TableProps> = ({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          console.log('Preview button clicked for file:', row[column.key]);
-                          onPreview(row[column.key]);
+                          console.log('Preview button clicked for row:', row);
+                          onPreview(row); // Pass the entire row object
                         }}
                         className="text-gray-100 hover:underline rounded-md bg-gold-200 hover:bg-gold-100 px-2 py-2"
                       >

@@ -448,3 +448,92 @@ export const syncUsers = /* GraphQL */ `query SyncUsers(
   }
 }
 ` as GeneratedQuery<APITypes.SyncUsersQueryVariables, APITypes.SyncUsersQuery>;
+export const getPricingPlan = /* GraphQL */ `query GetPricingPlan($id: ID!) {
+  getPricingPlan(id: $id) {
+    id
+    PlanID
+    PlanDate
+    Description
+    file
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetPricingPlanQueryVariables,
+  APITypes.GetPricingPlanQuery
+>;
+export const listPricingPlans = /* GraphQL */ `query ListPricingPlans(
+  $id: ID
+  $filter: ModelPricingPlanFilterInput
+  $limit: Int
+  $nextToken: String
+  $sortDirection: ModelSortDirection
+) {
+  listPricingPlans(
+    id: $id
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    sortDirection: $sortDirection
+  ) {
+    items {
+      id
+      PlanID
+      PlanDate
+      Description
+      file
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListPricingPlansQueryVariables,
+  APITypes.ListPricingPlansQuery
+>;
+export const syncPricingPlans = /* GraphQL */ `query SyncPricingPlans(
+  $filter: ModelPricingPlanFilterInput
+  $limit: Int
+  $nextToken: String
+  $lastSync: AWSTimestamp
+) {
+  syncPricingPlans(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    lastSync: $lastSync
+  ) {
+    items {
+      id
+      PlanID
+      PlanDate
+      Description
+      file
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.SyncPricingPlansQueryVariables,
+  APITypes.SyncPricingPlansQuery
+>;

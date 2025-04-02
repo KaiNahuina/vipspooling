@@ -107,3 +107,21 @@ type User
   Role: String!
   phoneNumber: String
 }
+
+type PricingPlan
+  @model
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin"]
+        operations: [create, update, delete, read]
+      }
+    ]
+  ) {
+  id: ID! @primaryKey
+  PlanID: String!
+  PlanDate: AWSDate
+  Description: String
+  file: String!
+}
