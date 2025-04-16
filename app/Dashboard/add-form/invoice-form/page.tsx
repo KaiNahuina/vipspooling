@@ -1,264 +1,499 @@
 "use client";
-import React from 'react'
-import {useState, useRef} from 'react'
+import React, { useState, useRef } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { generateClient } from 'aws-amplify/api';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import type { AwsCredentialIdentity } from '@aws-sdk/types';
 import { createInvoiceForm } from '@/src/graphql/mutations';
 import { CreateInvoiceFormInput, LaborCostInput, ConsumableInput, CableDetailInput } from '@/src/graphql/API';
 import { useRouter } from 'next/navigation';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { readFileSync, writeFileSync } from 'fs';
+import {writeFile as writeFileAsync} from 'fs/promises';
+import {createCanvas, loadImage} from 'canvas';
 
 const client = generateClient();
 
+const getCredentials = async (): Promise<AwsCredentialIdentity> => {
+  const session = await fetchAuthSession();
+  if (!session.credentials) throw new Error('No credentials available');
+  return {
+    accessKeyId: session.credentials.accessKeyId,
+    secretAccessKey: session.credentials.secretAccessKey,
+    sessionToken: session.credentials.sessionToken,
+  };
+};
+
+const s3Client = new S3Client({
+  region: 'us-east-1',
+  credentials: getCredentials,
+});
+
+// Define types for form data
+interface Rate {
+  description: string;
+  quantity: string;
+  rate: string;
+  total: number;
+}
+
+interface Consumable {
+  item: string;
+  qty: string;
+  rate: string;
+  amount: number;
+}
+
+interface FormData {
+  workTicketNo: string;
+  date: string;
+  spooler: string;
+  cableCompany: string;
+  cableCompanyLocation: string;
+  oilCompany: string;
+  wellNumber: string;
+  wellName: string;
+  workType: string;
+  reelNumber: string;
+  cableLength: string;
+  cableType: string;
+  extraCharges: string;
+  notes: string;
+  signature: string;
+  rates: Rate[];
+  consumables: Consumable[];
+}
+
+type JobTypeCheckboxes = {
+  Install: boolean;
+  Pull: boolean;
+  GasLift: boolean;
+  CTSpooler: boolean;
+  ComboSpooler: boolean;
+  GasInstall: boolean;
+  CableSpooler: boolean;
+  TechnicianLaydown: boolean;
+};
+
+const fillAndUploadPDF = async (
+  formData: FormData,
+  selectedDate: Dayjs | null,
+  jobTypeCheckboxes: JobTypeCheckboxes
+) => {
+  console.log('Starting PDF generation...');
+
+  // Load the actual template if available, otherwise create a blank A4 PDF
+  let pdfDoc: PDFDocument;
+  try {
+    const templateBytes = readFileSync('./InvoiceForm.pdf');
+    pdfDoc = await PDFDocument.load(templateBytes);
+    console.log('Loaded InvoiceForm.pdf template.');
+  } catch (error) {
+    console.warn('Could not load invoice-template.pdf, creating a blank A4 page instead.', error);
+    pdfDoc = await PDFDocument.create();
+    pdfDoc.addPage([595, 842]); // A4 size in points (72 DPI)
+  }
+
+  let page = pdfDoc.getPage(0);
+  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontSize = 10;
+  const textColor = rgb(0, 0, 0);
+
+  // Work Information 
+  page.drawText(formData.workTicketNo || 'N/A', { x: 100, y: 825, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(selectedDate?.format('YYYY-MM-DD') || 'N/A', { x: 46.8, y: 804, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.spooler || 'N/A', { x: 62.9, y: 779, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.workType || 'N/A', { x: 77.5, y: 759, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.cableCompany || 'N/A', { x: 99.8, y: 714, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.cableCompanyLocation || 'N/A', { x: 144, y: 694, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.oilCompany || 'N/A', { x: 84.4, y: 669, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.wellNumber || 'N/A', { x: 402.3, y: 694, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.wellName || 'N/A', { x: 392.3, y: 669, size: fontSize, font: helveticaFont, color: textColor });
+
+  // Labor Costs
+  const laborStartY = 627;
+  const rowHeight = 18;
+  formData.rates.forEach((rate: Rate, index: number) => {
+    const y = laborStartY - index * rowHeight;
+    page.drawText(`$${rate.rate || 0}`, { x: 144, y, size: fontSize, font: helveticaFont, color: textColor });
+    page.drawText(rate.quantity || '0', { x: 317, y, size: fontSize, font: helveticaFont, color: textColor });
+    page.drawText(`$${rate.total.toFixed(2)}`, { x: 490, y, size: fontSize, font: helveticaFont, color: textColor });
+  });
+
+  // Job Type Checkboxes
+  const checkboxSize = 12;
+  // Row 1
+  if (jobTypeCheckboxes.Install) {
+    page.drawText('X', { x: 52, y: 524, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+  if (jobTypeCheckboxes.Pull) {
+    page.drawText('X', { x: 52, y: 500, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+  if (jobTypeCheckboxes.GasLift) {
+    page.drawText('X', { x: 169, y: 526, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+  if (jobTypeCheckboxes.GasInstall) {
+    page.drawText('X', { x: 169, y: 500, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+  // Row 2
+  if (jobTypeCheckboxes.CTSpooler) {
+    page.drawText('X', { x: 294.09, y: 526, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+  if (jobTypeCheckboxes.CableSpooler) {
+    page.drawText('X', { x: 294.09, y: 500, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+  if (jobTypeCheckboxes.ComboSpooler) {
+    page.drawText('X', { x: 447.67, y: 526, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+  if (jobTypeCheckboxes.TechnicianLaydown) {
+    page.drawText('X', { x: 447.67, y: 500, size: checkboxSize, font: helveticaFont, color: textColor });
+  }
+
+  // Consumables
+  let currentY = 450; 
+    const consumablesRowHeight = 26;
+    formData.consumables.forEach((consumable: Consumable, index: number) => {
+      page.drawText(consumable.item || 'N/A', { x: 52, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
+      page.drawText(consumable.qty || '0', { x: 260, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
+      page.drawText(`$${consumable.rate || 0}`, { x: 360, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
+      page.drawText(`$${consumable.amount.toFixed(2)}`, { x: 489, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
+      currentY -= consumablesRowHeight;
+  });
+
+  
+if (formData.notes) {
+    const maxWidth = 550; 
+    const lineHeight = 14;
+    let currentY = 150; 
+    const words = formData.notes.split(' ');
+    let line = ''; 
+    const lines: string[] = [];
+  
+    for (const word of words) {
+      const testLine = line ? `${line} ${word}` : word;
+      const width = helveticaFont.widthOfTextAtSize(testLine, fontSize);
+      if (width <= maxWidth) {
+        line = testLine; 
+      } else {
+        if (line) {
+          lines.push(line);
+        }
+        line = word;
+      }
+    }
+    if (line) {
+      lines.push(line); 
+    }
+  
+    
+    for (const lineText of lines) {
+      if (currentY < 50) { 
+        page = pdfDoc.addPage([595, 842]);
+        currentY = 780; 
+        page.drawText('Notes (Continued)', { x: 18, y: currentY, size: 12, font: helveticaFont, color: textColor });
+        currentY -= 35;
+      }
+      page.drawText(lineText, { x: 18, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
+      currentY -= lineHeight; 
+    }
+  }
+
+  // Footer
+  page.drawText(formData.cableLength || 'N/A', { x: 105, y: 68, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.reelNumber || 'N/A', { x: 290, y: 68, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(formData.cableType || 'N/A', { x: 82, y: 47, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(`$${formData.extraCharges || 0}`, { x: 290, y: 47, size: fontSize, font: helveticaFont, color: textColor });
+
+  // Invoice Total
+  const total = 1310.00;
+  page.drawText(`$${total}`, { x: 90, y: 30, size: fontSize, font: helveticaFont, color: textColor });
+
+  // Customer Signature
+  if (formData.signature) {
+    try {
+      console.log('Converting signature to JPEG...');
+      const startConvert = Date.now();
+
+      const fs = require('fs');      
+      const base64Data = formData.signature.replace(/^data:image\/png;base64,/, '');
+      const imgBuffer = Buffer.from(base64Data, 'base64');
+        
+
+      // Load the image using node-canvas
+      const img = await loadImage(imgBuffer);
+      const canvas = createCanvas(img.width, img.height);
+      const ctx = canvas.getContext('2d');
+
+      // Fill the background with white to remove transparency
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+
+      // Convert to JPEG buffer
+      const jpegBuffer = canvas.toBuffer('image/jpeg', { quality: 0.95 });
+      console.log(`Signature converted to JPEG in ${Date.now() - startConvert}ms.`);
+
+      // Embed the JPEG image
+      console.log('Embedding signature image (JPEG)...');
+      const startEmbed = Date.now();
+      const signatureImage = await pdfDoc.embedJpg(jpegBuffer);
+      console.log(`Signature embedded in ${Date.now() - startEmbed}ms.`);
+
+      // Draw the signature
+      page.drawImage(signatureImage, { x: 410, y: 40, width: 80, height: 40 });
+      console.log('Signature drawn on page.');
+    } catch (error) {
+      console.error('Error embedding signature (skipping signature):', error);
+      // Continue without the signature
+    }
+  }
+
+  // Save and upload to S3
+  const pdfBytes = await pdfDoc.save();
+  const fileName = `invoice-${formData.workTicketNo || 'Unknown'}-${Date.now()}.pdf`;
+  const params = {
+    Bucket: 'vip-completed-invoices',
+    Key: fileName,
+    Body: pdfBytes,
+    ContentType: 'application/pdf',
+  };
+  await s3Client.send(new PutObjectCommand(params));
+  return `s3://${params.Bucket}/${params.Key}`;
+};
+
 const NewForm = () => {
-    const router = useRouter();
+  const router = useRouter();
 
-    {/*input default*/}
-    const [formData, setFormData] = useState({
-        workTicketNo: "",
-        date: "",
-        spooler: "",
-        cableCompany: "",
-        cableCompanyLocation: "",
-        oilCompany: "",
-        wellNumber: "",
-        wellName: "",
-        workType: "",
-        reelNumber: "",
-        cableLength: "",
-        cableType: "",
-        extraCharges: "",
-        notes: "",
-        signature: "",
-        rates: [
-          { description: "Load/Unload", quantity: '', rate: '', total: 0 },
-          { description: "Spooler Miles To", quantity: '', rate: '', total: 0 },
-          { description: "Travel Time", quantity: '', rate: '', total: 0 },
-          { description: "Standby Time", quantity: '', rate: '', total: 0 },
-          { description: "Spooler Labor", quantity: '', rate: '', total: 0 },
-        ],
-        consumables: [{ item: "", qty: '', rate: '', amount: 0 }],
+  const [formData, setFormData] = useState<FormData>({
+    workTicketNo: "",
+    date: "",
+    spooler: "",
+    cableCompany: "",
+    cableCompanyLocation: "",
+    oilCompany: "",
+    wellNumber: "",
+    wellName: "",
+    workType: "",
+    reelNumber: "",
+    cableLength: "",
+    cableType: "",
+    extraCharges: "",
+    notes: "",
+    signature: "",
+    rates: [
+      { description: "Load/Unload", quantity: '', rate: '', total: 0 },
+      { description: "Spooler Miles To", quantity: '', rate: '', total: 0 },
+      { description: "Travel Time", quantity: '', rate: '', total: 0 },
+      { description: "Standby Time", quantity: '', rate: '', total: 0 },
+      { description: "Spooler Labor", quantity: '', rate: '', total: 0 },
+    ],
+    consumables: [{ item: "", qty: '', rate: '', amount: 0 }],
+  });
+
+  const [jobTypeCheckboxes, setJobTypeCheckboxes] = useState<JobTypeCheckboxes>({
+    Install: false,
+    Pull: false,
+    GasLift: false,
+    CTSpooler: false,
+    ComboSpooler: false,
+    GasInstall: false,
+    CableSpooler: false,
+    TechnicianLaydown: false
+  });
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const sigCanvas = useRef<SignatureCanvas | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+
+  const handleConsumableChange = (index: number, field: keyof Consumable, value: string) => {
+    const updatedConsumables = [...formData.consumables];
+    updatedConsumables[index][field] = value as never;
+
+    if (field === "qty" || field === "rate") {
+      const qty = Number(updatedConsumables[index].qty) || 0;
+      const rate = Number(updatedConsumables[index].rate) || 0;
+      updatedConsumables[index].amount = qty * rate;
+    }
+
+    setFormData({ ...formData, consumables: updatedConsumables });
+  };
+
+  const addConsumable = () => {
+    setFormData({
+      ...formData,
+      consumables: [...formData.consumables, { item: "", qty: '', rate: '', amount: 0 }],
     });
+  };
 
-    const [jobTypeCheckboxes, setJobTypeCheckboxes] = useState({
-        Install: false,
-        Pull: false,
-        GasLift: false,
-        CTSpooler: false,
-        ComboSpooler: false,
-        GasInstall: false,
-        CableSpooler: false,
-        TechnicianLaydown: false
-    });
+  const removeConsumable = (index: number) => {
+    const updatedConsumables = formData.consumables.filter((_, i) => i !== index);
+    setFormData({ ...formData, consumables: updatedConsumables });
+  };
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const sigCanvas = useRef<SignatureCanvas | null>(null);
+  const handleDateChange = (date: Dayjs | null) => {
+    setSelectedDate(date);
+  };
 
-    const handleConsumableChange = (index: number, field: keyof typeof formData.consumables[0], value: string) => {
-        const updatedConsumables = [...formData.consumables];
-        updatedConsumables[index][field] = value as never;
-    
-        // Calculate amount only if both values are numbers
-        if (field === "qty" || field === "rate") {
-          const qty = Number(updatedConsumables[index].qty) || 0;
-          const rate = Number(updatedConsumables[index].rate) || 0;
-          updatedConsumables[index].amount = qty * rate;
-        }
-    
-        setFormData({ ...formData, consumables: updatedConsumables });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleRateChange = (index: number, field: 'rate' | 'quantity', value: string) => {
+    const updatedRates = [...formData.rates];
+    updatedRates[index] = {
+      ...updatedRates[index],
+      [field]: value
+    };
+
+    const qty = Number(updatedRates[index].quantity) || 0;
+    const rate = Number(updatedRates[index].rate) || 0;
+    updatedRates[index].total = qty * rate;
+
+    setFormData(prev => ({
+      ...prev,
+      rates: updatedRates
+    }));
+  };
+
+  const openSignatureModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const saveSignature = () => {
+    if (sigCanvas.current !== null) {
+      const signatureImage = sigCanvas.current.toDataURL("image/png");
+      setFormData({
+        ...formData,
+        signature: signatureImage
+      });
+      setIsModalOpen(false);
+    }
+  };
+
+  const clearSignature = () => {
+    if (sigCanvas.current) {
+      sigCanvas.current.clear();
+    }
+  };
+
+  const handleCheckboxChange = (checkboxId: keyof JobTypeCheckboxes) => {
+    setJobTypeCheckboxes(prev => ({
+      ...prev,
+      [checkboxId]: !prev[checkboxId]
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      if (!formData.signature) {
+        alert('Please add a signature before submitting.');
+        return;
+      }
+
+      const s3Url = await fillAndUploadPDF(formData, selectedDate, jobTypeCheckboxes);
+      console.log('Final product uploaded to S3:', s3Url);
+
+      const invoiceData: CreateInvoiceFormInput = {
+        WorkTicketID: formData.workTicketNo,
+        InvoiceDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString().split('T')[0],
+        Spooler: formData.spooler,
+        WorkType: formData.workType,
+        CableCompanyLocation: formData.cableCompanyLocation,
+        OilCompany: formData.oilCompany,
+        WellNumberName: formData.wellNumber,
+        ReelNumber: formData.reelNumber,
+        ExtraCharges: Number(formData.extraCharges) || 0,
+        Notes: formData.notes || "",
+        CustomerSignature: formData.signature,
+        InvoiceTotal: formData.rates.reduce((sum: number, rate: Rate) => sum + rate.total, 0) +
+                      formData.consumables.reduce((sum: number, consumable: Consumable) => sum + consumable.amount, 0) +
+                      Number(formData.extraCharges || 0),
+        LaborCosts: formData.rates.map((rate: Rate) => ({
+          rate: Number(rate.rate) || 0,
+          qty: Number(rate.quantity) || 0,
+          amount: rate.total
+        } as LaborCostInput)),
+        Consumables: formData.consumables.map((consumable: Consumable) => ({
+          item: consumable.item,
+          qty: Number(consumable.qty) || 0,
+          rate: Number(consumable.rate) || 0,
+          amount: consumable.amount
+        } as ConsumableInput)),
+        CableDetails: {
+          CableType: formData.cableType || "",
+          CableLength: Number(formData.cableLength) || 0
+        } as CableDetailInput,
+        JobType: Object.keys(jobTypeCheckboxes).filter(key => jobTypeCheckboxes[key as keyof JobTypeCheckboxes])
       };
-    
-      // Add new consumable row
-      const addConsumable = () => {
+
+      console.log('Submitting form data:', invoiceData);
+
+      const response = await client.graphql({
+        query: createInvoiceForm,
+        variables: { input: invoiceData },
+        authMode: 'userPool',
+      });
+
+      console.log('Response:', response);
+
+      if (response.data?.createInvoiceForm) {
         setFormData({
-          ...formData,
-            consumables: [...formData.consumables, { item: "", qty: '', rate: '', amount: 0 }],
+          workTicketNo: "",
+          date: "",
+          spooler: "",
+          cableCompany: "",
+          cableCompanyLocation: "",
+          oilCompany: "",
+          wellNumber: "",
+          wellName: "",
+          workType: "",
+          reelNumber: "",
+          cableLength: "",
+          cableType: "",
+          extraCharges: "",
+          notes: "",
+          signature: "",
+          rates: [
+            { description: "Load/Unload", quantity: '', rate: '', total: 0 },
+            { description: "Spooler Miles To", quantity: '', rate: '', total: 0 },
+            { description: "Travel Time", quantity: '', rate: '', total: 0 },
+            { description: "Standby Time", quantity: '', rate: '', total: 0 },
+            { description: "Spooler Labor", quantity: '', rate: '', total: 0 },
+          ],
+          consumables: [{ item: "", qty: '', rate: '', amount: 0 }],
         });
-      };
-    
-      // Remove consumable row
-      const removeConsumable = (index: number) => {
-        const updatedConsumables = formData.consumables.filter((_, i) => i !== index);
-        setFormData({ ...formData, consumables: updatedConsumables });
-      };
-    
+        setSelectedDate(null);
+        sigCanvas.current?.clear();
 
-      const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs | null>(null);
+        setJobTypeCheckboxes({
+          Install: false,
+          Pull: false,
+          GasLift: false,
+          CTSpooler: false,
+          ComboSpooler: false,
+          GasInstall: false,
+          CableSpooler: false,
+          TechnicianLaydown: false
+        });
 
-      // Function to handle the date change
-      const handleDateChange = (date: dayjs.Dayjs | null) => {
-        setSelectedDate(date);
-      };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { id, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [id]: value
-        }));
-    };
-
-    const handleRateChange = (index: number, field: 'rate' | 'quantity', value: string) => {
-        const updatedRates = [...formData.rates];
-        updatedRates[index] = {
-            ...updatedRates[index],
-            [field]: value
-        };
-        
-        // Calculate total only if both values are numbers
-        const qty = Number(updatedRates[index].quantity) || 0;
-        const rate = Number(updatedRates[index].rate) || 0;
-        updatedRates[index].total = qty * rate;
-        
-        setFormData(prev => ({
-            ...prev,
-            rates: updatedRates
-        }));
-    };
-
-    const openSignatureModal = () => {
-        setIsModalOpen(true);
-    };
-  
-    // Save the signature
-    const saveSignature = () => {
-        if (sigCanvas.current !== null) {
-            const signatureImage = sigCanvas.current.toDataURL("image/png");
-    
-            setFormData({
-                ...formData,
-                signature: signatureImage
-            });
-    
-            setIsModalOpen(false);
-        }
-    };
-  
-    // Clear the signature pad
-    const clearSignature = () => {
-        if(sigCanvas.current){
-            sigCanvas.current.clear();
-        }
-    };
-    
-
-      {/*Form Submission*/}
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        
-        try {
-            // Check if signature exists
-            if (!formData.signature) {
-                alert('Please add a signature before submitting.');
-                return;
-            }
-
-            // Format the form data to match the CreateInvoiceFormInput type
-            const invoiceData: CreateInvoiceFormInput = {
-                WorkTicketID: formData.workTicketNo,
-                InvoiceDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString(),
-                Spooler: formData.spooler,
-                WorkType: formData.workType,
-                CableCompanyLocation: formData.cableCompanyLocation,
-                OilCompany: formData.oilCompany,
-                WellNumberName: formData.wellNumber,
-                ReelNumber: formData.reelNumber,
-                ExtraCharges: Number(formData.extraCharges) || 0,
-                Notes: formData.notes || "",
-                CustomerSignature: formData.signature,
-                InvoiceTotal: formData.rates.reduce((sum, rate) => sum + rate.total, 0) + 
-                            formData.consumables.reduce((sum, consumable) => sum + consumable.amount, 0) +
-                            Number(formData.extraCharges || 0),
-                LaborCosts: formData.rates.map(rate => ({
-                    rate: Number(rate.rate) || 0,
-                    qty: Number(rate.quantity) || 0,
-                    amount: rate.total
-                } as LaborCostInput)),
-                Consumables: formData.consumables.map(consumable => ({
-                    item: consumable.item,
-                    qty: Number(consumable.qty) || 0,
-                    rate: Number(consumable.rate) || 0,
-                    amount: consumable.amount
-                } as ConsumableInput)),
-                CableDetails: {
-                    CableType: formData.cableType || "",
-                    CableLength: Number(formData.cableLength) || 0
-                } as CableDetailInput,
-                JobType: [formData.workType]
-            };
-
-            console.log('Submitting form data:', invoiceData);
-
-            // Submit the form data to the database
-            const response = await client.graphql({
-                query: createInvoiceForm,
-                variables: { input: invoiceData }
-            });
-            
-            console.log('Response:', response);
-
-            if (response.data.createInvoiceForm) {
-                // Clear the form
-                setFormData({
-                    workTicketNo: "",
-                    date: "",
-                    spooler: "",
-                    cableCompany: "",
-                    cableCompanyLocation: "",
-                    oilCompany: "",
-                    wellNumber: "",
-                    wellName: "",
-                    workType: "",
-                    reelNumber: "",
-                    cableLength: "",
-                    cableType: "",
-                    extraCharges: "",
-                    notes: "",
-                    signature: "",
-                    rates: [
-                        { description: "Load/Unload", quantity: '', rate: '', total: 0 },
-                        { description: "Spooler Miles To", quantity: '', rate: '', total: 0 },
-                        { description: "Travel Time", quantity: '', rate: '', total: 0 },
-                        { description: "Standby Time", quantity: '', rate: '', total: 0 },
-                        { description: "Spooler Labor", quantity: '', rate: '', total: 0 },
-                    ],
-                    consumables: [{ item: "", qty: '', rate: '', amount: 0 }],
-                });
-                setSelectedDate(null);
-                if (sigCanvas.current) {
-                    sigCanvas.current.clear();
-                }
-                
-                // Reset checkboxes
-                setJobTypeCheckboxes({
-                    Install: false,
-                    Pull: false,
-                    GasLift: false,
-                    CTSpooler: false,
-                    ComboSpooler: false,
-                    GasInstall: false,
-                    CableSpooler: false,
-                    TechnicianLaydown: false
-                });
-                
-                // Show success message
-                alert('Invoice form submitted successfully!');
-            }
-        } catch (error) {
-            console.error('Error submitting invoice:', error);
-            alert('Error submitting invoice. Please try again.');
-        }
-    };
-
-    const handleCheckboxChange = (checkboxId: string) => {
-        setJobTypeCheckboxes(prev => ({
-            ...prev,
-            [checkboxId]: !prev[checkboxId as keyof typeof jobTypeCheckboxes]
-        }));
-    };
+        alert('Invoice form submitted successfully to: ' + s3Url);
+      }
+    } catch (error) {
+      console.error('Error submitting invoice:', error);
+      alert('Error submitting invoice. Please try again.');
+    }
+  };
 
   return (
     <>
@@ -290,527 +525,509 @@ const NewForm = () => {
           
           <div className="flex-1">
             <div className="w-full flex flex-col items-center bg-white dark:bg-gray-100 px-4 py-10 rounded-[5px]">
-        <div className="flex flex-col items-center justify-center gap-2 mb-8">
+              <div className="flex flex-col items-center justify-center gap-2 mb-8">
                 <h1 className='text-black text-3xl dark:text-white'>
-            New form
-          </h1>
-                
-        </div>
+                  New form
+                </h1>
+              </div>
 
-        <form className="w-full" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
-            <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Ticket #</label>
-                <input
-                  type="text"
-                        id="workTicketNo"
-                        value={formData.workTicketNo}
-                        onChange={handleInputChange}
-                  placeholder="Work Ticket #"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
+              <form className="w-full" onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
+                  <div className="mb-2">
+                    <label htmlFor="workTicketNo" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Ticket #</label>
+                    <input
+                      type="text"
+                      id="workTicketNo"
+                      value={formData.workTicketNo}
+                      onChange={handleInputChange}
+                      placeholder="Work Ticket #"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
 
-            <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <div className="mb-2">
+                    <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date</label>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
                         value={selectedDate}
                         onChange={handleDateChange}
                         sx={{
-                                width: '100%',
+                          width: '100%',
                           "& .MuiOutlinedInput-root": {
-                                  height: '38px',
-                                  border: '1px solid #9CA3AF',
-                                  borderRadius: '0.5rem',
-                                  backgroundColor: 'transparent',
+                            height: '38px',
+                            border: '1px solid #9CA3AF',
+                            borderRadius: '0.5rem',
+                            backgroundColor: 'transparent',
                             "&:hover": {
-                                    borderColor: '#9CA3AF',
-                                  },
-                                  "& fieldset": {
-                                    border: 'none',
+                              borderColor: '#9CA3AF',
+                            },
+                            "& fieldset": {
+                              border: 'none',
                             },
                           },
-                                "& .MuiInputBase-input": {
-                                  fontSize: '0.875rem',
-                                  padding: '0.5rem 0.75rem',
-                                  color: 'inherit',
-                                },
+                          "& .MuiInputBase-input": {
+                            fontSize: '0.875rem',
+                            padding: '0.5rem 0.75rem',
+                            color: 'inherit',
+                          },
                           "& .MuiSvgIcon-root": {
-                                  color: 'currentColor',
-                                },
-                              }}
-                              slotProps={{
-                                textField: {
-                                  placeholder: "Select Date",
+                            color: 'currentColor',
+                          },
+                        }}
+                        slotProps={{
+                          textField: {
+                            placeholder: "Select Date",
                           },
                         }}
                       />
                     </LocalizationProvider>
-                
-            </div>
+                  </div>
 
-            <div>
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler</label>
-                <input
-                  type="text"
-                  id="spooler"
-                        value={formData.spooler}
-                        onChange={handleInputChange}
-                  placeholder="Spooler"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
-            <div>
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Type</label>
-                <input
-                  type="text"
-                        id="workType"
-                        value={formData.workType}
-                        onChange={handleInputChange}
-                  placeholder="Work Type"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
-          </div>
-
-          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
-
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
-            <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company</label>
-                <input
-                  type="text"
-                        id="cableCompany"
-                        value={formData.cableCompany}
-                        onChange={handleInputChange}
-                  placeholder="Cable Company"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
-            <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company Location</label>
-                <input
-                  type="text"
-                        id="cableCompanyLocation"
-                        value={formData.cableCompanyLocation}
-                        onChange={handleInputChange}
-                  placeholder="Cable Company Location"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
-            <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Oil Company</label>
-                <input
-                  type="text"
-                        id="oilCompany"
-                        value={formData.oilCompany}
-                        onChange={handleInputChange}
-                  placeholder="Oil Company"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
-            <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Number</label>
-                <input
-                  type="text"
-                        id="wellNumber"
-                        value={formData.wellNumber}
-                        onChange={handleInputChange}
-                  placeholder="Well Number"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
-            <div className="mb-2">
-                <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Name</label>
-                <input
-                  type="text"
-                        id="wellName"
-                        value={formData.wellName}
-                        onChange={handleInputChange}
-                  placeholder="Well Name"
-                  className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                />
-            </div>
-          </div>
-
-          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
-
-
-          {/*Rate, QTY, AMNT*/}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8">
-            {/*Column 1*/}
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Load/Unload</label>
-                  <input
-                    type="number"
-                    id="rate1"
-                          value={formData.rates[0].rate}
-                          onChange={(e) => handleRateChange(0, 'rate', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                  <input
-                    type="number"
-                    id="loadhours"
-                          value={formData.rates[0].quantity}
-                          onChange={(e) => handleRateChange(0, 'quantity', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                  <input
-                    type="text"
-                    id="loadtotal"
-                          value={formData.rates[0].total.toFixed(2)}
-                          readOnly
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Miles To</label>
-                  <input
-                    type="number"
-                    id="rate2"
-                          value={formData.rates[1].rate}
-                          onChange={(e) => handleRateChange(1, 'rate', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Miles</label>
-                  <input
-                    type="number"
-                    id="spoolermiles"
-                          value={formData.rates[1].quantity}
-                          onChange={(e) => handleRateChange(1, 'quantity', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                  <input
-                    type="number"
-                    id="milestotal"
-                          value={formData.rates[1].total.toFixed(2)}
-                          readOnly
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Travel Time</label>
-                  <input
-                    type="number"
-                    id="rate3"
-                          value={formData.rates[2].rate}
-                          onChange={(e) => handleRateChange(2, 'rate', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                  <input
-                    type="number"
-                    id="travelhours"
-                          value={formData.rates[2].quantity}
-                          onChange={(e) => handleRateChange(2, 'quantity', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                  <input
-                    type="number"
-                    id="traveltotal"
-                          value={formData.rates[2].total.toFixed(2)}
-                          readOnly
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Standby Time</label>
-                  <input
-                    type="number"
-                    id="rate4"
-                          value={formData.rates[3].rate}
-                          onChange={(e) => handleRateChange(3, 'rate', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                  <input
-                    type="number"
-                    id="standbyhours"
-                          value={formData.rates[3].quantity}
-                          onChange={(e) => handleRateChange(3, 'quantity', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                  <input
-                    type="number"
-                    id="standbytotal"
-                          value={formData.rates[3].total.toFixed(2)}
-                          readOnly
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Labor</label>
-                  <input
-                    type="number"
-                          id="rate5"
-                          value={formData.rates[4].rate}
-                          onChange={(e) => handleRateChange(4, 'rate', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
-                  <input
-                    type="number"
-                    id="laborhours"
-                          value={formData.rates[4].quantity}
-                          onChange={(e) => handleRateChange(4, 'quantity', e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
-                  <input
-                    type="number"
-                    id="labortotal"
-                          value={formData.rates[4].total.toFixed(2)}
-                          readOnly
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-          </div>
-
-          
-          
-
-          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
-          
-          {/*Job type checkboxes*/}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-8">
-              {[
-                      { id: "Install", label: "Install" },
-                      { id: "Pull", label: "Pull" },
-                      { id: "GasLift", label: "Gas Lift" },
-                      { id: "CTSpooler", label: "CT Spooler" },
-                      { id: "ComboSpooler", label: "Combo Spooler" },
-                      { id: "GasInstall", label: "Gas Install" },
-                      { id: "CableSpooler", label: "Cable Spooler" },
-                      { id: "TechnicianLaydown", label: "Technician Laydown" },
-              ].map(({ id, label }) => (
-                <div key={id} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id={id}
-                          checked={jobTypeCheckboxes[id as keyof typeof jobTypeCheckboxes]}
-                          onChange={() => handleCheckboxChange(id)}
-                    className="border rounded-lg text-sm outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-                  <label htmlFor={id} className="text-sm font-medium text-gray-900 dark:text-white">
-                    {label}
-                  </label>
+                  <div>
+                    <label htmlFor="spooler" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler</label>
+                    <input
+                      type="text"
+                      id="spooler"
+                      value={formData.spooler}
+                      onChange={handleInputChange}
+                      placeholder="Spooler"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="workType" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Work Type</label>
+                    <input
+                      type="text"
+                      id="workType"
+                      value={formData.workType}
+                      onChange={handleInputChange}
+                      placeholder="Work Type"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
 
+                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
 
-          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
+                  <div className="mb-2">
+                    <label htmlFor="cableCompany" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company</label>
+                    <input
+                      type="text"
+                      id="cableCompany"
+                      value={formData.cableCompany}
+                      onChange={handleInputChange}
+                      placeholder="Cable Company"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label htmlFor="cableCompanyLocation" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Company Location</label>
+                    <input
+                      type="text"
+                      id="cableCompanyLocation"
+                      value={formData.cableCompanyLocation}
+                      onChange={handleInputChange}
+                      placeholder="Cable Company Location"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label htmlFor="oilCompany" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Oil Company</label>
+                    <input
+                      type="text"
+                      id="oilCompany"
+                      value={formData.oilCompany}
+                      onChange={handleInputChange}
+                      placeholder="Oil Company"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label htmlFor="wellNumber" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Number</label>
+                    <input
+                      type="text"
+                      id="wellNumber"
+                      value={formData.wellNumber}
+                      onChange={handleInputChange}
+                      placeholder="Well Number"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label htmlFor="wellName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Well Name</label>
+                    <input
+                      type="text"
+                      id="wellName"
+                      value={formData.wellName}
+                      onChange={handleInputChange}
+                      placeholder="Well Name"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                </div>
 
-          {/*Consumables*/}
-          <div className="mb-8">
-            <div className="grid grid-cols-4 gap-4 font-medium bg-gray-300 p-2 rounded-md mb-2">
-              <span>Consumables</span>
-              <span>Quantity</span>
-              <span>Rate ($)</span>
-              <span>Total ($)</span>
-            </div>
-            {formData.consumables.map((consumable, index) => (
+                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-8">
+                  <div>
+                    <label htmlFor="loadunload" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Load/Unload</label>
+                    <input
+                      type="number"
+                      id="loadunload"
+                      value={formData.rates[0].rate}
+                      onChange={(e) => handleRateChange(0, 'rate', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="loadhours" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                    <input
+                      type="number"
+                      id="loadhours"
+                      value={formData.rates[0].quantity}
+                      onChange={(e) => handleRateChange(0, 'quantity', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="loadtotal" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                    <input
+                      type="text"
+                      id="loadtotal"
+                      value={formData.rates[0].total.toFixed(2)}
+                      readOnly
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="milesTo" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Miles To</label>
+                    <input
+                      type="number"
+                      id="milesTo"
+                      value={formData.rates[1].rate}
+                      onChange={(e) => handleRateChange(1, 'rate', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cableCompanyLocation" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Miles</label>
+                    <input
+                      type="number"
+                      id="spoolermiles"
+                      value={formData.rates[1].quantity}
+                      onChange={(e) => handleRateChange(1, 'quantity', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="milestotal" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                    <input
+                      type="number"
+                      id="milestotal"
+                      value={formData.rates[1].total.toFixed(2)}
+                      readOnly
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="traveltime" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Travel Time</label>
+                    <input
+                      type="number"
+                      id="traveltime"
+                      value={formData.rates[2].rate}
+                      onChange={(e) => handleRateChange(2, 'rate', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="travelhours" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                    <input
+                      type="number"
+                      id="travelhours"
+                      value={formData.rates[2].quantity}
+                      onChange={(e) => handleRateChange(2, 'quantity', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="traveltotal" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                    <input
+                      type="number"
+                      id="traveltotal"
+                      value={formData.rates[2].total.toFixed(2)}
+                      readOnly
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="standbytime" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Standby Time</label>
+                    <input
+                      type="number"
+                      id="standbytime"
+                      value={formData.rates[3].rate}
+                      onChange={(e) => handleRateChange(3, 'rate', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="standbyhours" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                    <input
+                      type="number"
+                      id="standbyhours"
+                      value={formData.rates[3].quantity}
+                      onChange={(e) => handleRateChange(3, 'quantity', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="standbytotal" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                    <input
+                      type="number"
+                      id="standbytotal"
+                      value={formData.rates[3].total.toFixed(2)}
+                      readOnly
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="spoolerlabor" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler Labor</label>
+                    <input
+                      type="number"
+                      id="spoolerlabor"
+                      value={formData.rates[4].rate}
+                      onChange={(e) => handleRateChange(4, 'rate', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="laborhours" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Hours</label>
+                    <input
+                      type="number"
+                      id="laborhours"
+                      value={formData.rates[4].quantity}
+                      onChange={(e) => handleRateChange(4, 'quantity', e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="labortotal" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Total</label>
+                    <input
+                      type="number"
+                      id="labortotal"
+                      value={formData.rates[4].total.toFixed(2)}
+                      readOnly
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                </div>
+
+                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mb-8">
+                  {[
+                    { id: "Install", label: "Install" },
+                    { id: "Pull", label: "Pull" },
+                    { id: "GasLift", label: "Gas Lift" },
+                    { id: "CTSpooler", label: "CT Spooler" },
+                    { id: "ComboSpooler", label: "Combo Spooler" },
+                    { id: "GasInstall", label: "Gas Install" },
+                    { id: "CableSpooler", label: "Cable Spooler" },
+                    { id: "TechnicianLaydown", label: "Technician Laydown" },
+                  ].map(({ id, label }) => (
+                    <div key={id} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id={id}
+                        checked={jobTypeCheckboxes[id as keyof JobTypeCheckboxes]}
+                        onChange={() => handleCheckboxChange(id as keyof JobTypeCheckboxes)}
+                        className="border rounded-lg text-sm outline-none dark:border-gray-200 dark:bg-gray-10"
+                      />
+                      <label htmlFor={id} className="text-sm font-medium text-gray-900 dark:text-white">
+                        {label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+
+                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+
+                <div className="mb-8">
+                  <div className="grid grid-cols-4 gap-4 font-medium bg-gray-300 p-2 rounded-md mb-2">
+                    <span>Consumables</span>
+                    <span>Quantity</span>
+                    <span>Rate ($)</span>
+                    <span>Total ($)</span>
+                  </div>
+                  {formData.consumables.map((consumable: Consumable, index: number) => (
                     <div key={index} className="grid grid-cols-4 gap-4 mt-2 items-center">
-                <input
-                  type="text"
-                  value={consumable.item}
-                  onChange={(e) => handleConsumableChange(index, "item", e.target.value)}
-                  placeholder="Consumable"
-                  className="border p-2 rounded-md dark:bg-transparent text-black dark:text-white"
-                />
-                <input
-                  type="number"
-                  value={consumable.qty}
+                      <input
+                        type="text"
+                        value={consumable.item}
+                        onChange={(e) => handleConsumableChange(index, "item", e.target.value)}
+                        placeholder="Consumable"
+                        className="border p-2 rounded-md dark:bg-transparent text-black dark:text-white"
+                      />
+                      <input
+                        type="number"
+                        value={consumable.qty}
                         onChange={(e) => handleConsumableChange(index, "qty", e.target.value)}
                         placeholder="Qty"
-                  className="border p-2 rounded-md w-16 dark:bg-transparent text-black dark:text-white"
-                />
-                     
-
-                <input
-                  type="number"
-                  value={consumable.rate}
+                        className="border p-2 rounded-md w-16 dark:bg-transparent text-black dark:text-white"
+                      />
+                      <input
+                        type="number"
+                        value={consumable.rate}
                         onChange={(e) => handleConsumableChange(index, "rate", e.target.value)}
                         placeholder="Rate"
-                  className="border p-2 rounded-md w-20 dark:bg-transparent text-black dark:text-white"
-                />
-                <div className="flex justify-between items-center">
-                  <span className="p-2">{consumable.amount.toFixed(2)}</span>
-                  {formData.consumables.length > 1 && (
-                    <button
-                          type="button"
-                      onClick={() => removeConsumable(index)}
-                      className="text-red-500 hover:text-red-700 text-sm"
-                    >
-                      ✕
-                    </button>
+                        className="border p-2 rounded-md w-20 dark:bg-transparent text-black dark:text-white"
+                      />
+                      <div className="flex justify-between items-center">
+                        <span className="p-2">{consumable.amount.toFixed(2)}</span>
+                        {formData.consumables.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeConsumable(index)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={addConsumable}
+                    className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
+                  >
+                    + Add Consumable
+                  </button>
+                </div>
+
+                <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
+
+                <div className="mb-8">
+                  <label htmlFor="notes" className="block mb-2 text-md font-medium text-black dark:text-white">Notes</label>
+                  <textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    className="border-2 border-gray-10 rounded-md w-full"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
+                  <div>
+                    <label htmlFor="cableLength" className="block mb-2 text-sm font-medium text-black dark:text-white">Cable Length</label>
+                    <input
+                      type="number"
+                      id="cableLength"
+                      value={formData.cableLength}
+                      onChange={handleInputChange}
+                      placeholder="Cable Length(ft)"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="reelNumber" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reel Number</label>
+                    <input
+                      type="text"
+                      id="reelNumber"
+                      value={formData.reelNumber}
+                      onChange={handleInputChange}
+                      placeholder="Reel Number"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cableType" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Type</label>
+                    <input
+                      type="text"
+                      id="cableType"
+                      value={formData.cableType}
+                      onChange={handleInputChange}
+                      placeholder="Cable Type"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="extraCharges" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Extra Charges</label>
+                    <input
+                      type="number"
+                      id="extraCharges"
+                      value={formData.extraCharges}
+                      onChange={handleInputChange}
+                      placeholder="Extra Charges"
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="invoiceTotal" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Invoice Total</label>
+                    <input
+                      type="number"
+                      id="invoiceTotal"
+                      value={formData.rates.reduce((sum: number, rate: Rate) => sum + rate.total, 0) +
+                            formData.consumables.reduce((sum: number, consumable: Consumable) => sum + consumable.amount, 0) +
+                            Number(formData.extraCharges)}
+                      readOnly
+                      className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
+                    />
+                  </div>
+                  <div className="flex justify-end items-center">
+                    {formData.signature ? (
+                      <img
+                        src={formData.signature}
+                        alt="Signature"
+                        className="w-20 h-10 border border-gray-400 rounded-md cursor-pointer"
+                        onClick={() => openSignatureModal()}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openSignatureModal()}
+                        className="border px-4 py-2 rounded-md bg-gray-300 dark:bg-gray-800 text-black dark:text-white"
+                      >
+                        Click to Sign
+                      </button>
+                    )}
+                  </div>
+
+                  {isModalOpen && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                      <div className="bg-white p-6 rounded-lg shadow-lg">
+                        <h2 className="text-lg font-semibold mb-2">Sign Here</h2>
+                        <SignatureCanvas
+                          ref={sigCanvas}
+                          penColor="black"
+                          canvasProps={{ className: "border border-gray-400 w-64 h-32" }}
+                        />
+                        <div className="flex justify-between mt-4">
+                          <button type="button" onClick={clearSignature} className="px-4 py-2 bg-red-500 text-white rounded">Clear</button>
+                          <button type="button" onClick={saveSignature} className="px-4 py-2 bg-green-500 text-white rounded">Save</button>
+                          <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-500 text-white rounded">Close</button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
 
-            <button
-                    type="button"
-              onClick={addConsumable}
-              className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
-            >
-              + Add Consumable
-            </button>
-          </div>
-
-          <hr className="h-px mb-8 bg-gray-200 border-0 dark:bg-gray-700"/>
-          
-          {/*Notes section*/}
-          <div className="mb-8">
-                <label className="block mb-2 text-md font-medium text-black dark:text-white">Notes</label>
-            <textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-            className="border-2 border-gray-10 rounded-md w-full"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-black dark:text-white">Cable Length</label>
-                  <input
-                    type="number"
-                          id="cableLength"
-                          value={formData.cableLength}
-                          onChange={handleInputChange}
-                    placeholder="Cable Length(ft)"
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Reel Number</label>
-                  <input
-                          type="text"
-                          id="reelNumber"
-                          value={formData.reelNumber}
-                          onChange={handleInputChange}
-                    placeholder="Reel Number"
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cable Type</label>
-                  <input
-                          type="text"
-                          id="cableType"
-                          value={formData.cableType}
-                          onChange={handleInputChange}
-                    placeholder="Cable Type"
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Extra Charges</label>
-                  <input
-                    type="number"
-                          id="extraCharges"
-                          value={formData.extraCharges}
-                          onChange={handleInputChange}
-                    placeholder="Extra Charges"
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-              <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Invoice Total</label>
-                  <input
-                    type="number"
-                          id="invoiceTotal"
-                          value={formData.rates.reduce((sum, rate) => sum + rate.total, 0) + 
-                                    formData.consumables.reduce((sum, consumable) => sum + consumable.amount, 0) +
-                                    Number(formData.extraCharges)}
-                          readOnly
-                    className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
-                  />
-              </div>
-                    <div className="flex justify-end items-center">
-                            {formData.signature ? (
-                              <img
-                                src={formData.signature}
-                                alt="Signature"
-                                className="w-20 h-10 border border-gray-400 rounded-md cursor-pointer"
-                                onClick={() => openSignatureModal()}
-                              />
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => openSignatureModal()}
-                                className="border px-4 py-2 rounded-md bg-gray-300 dark:bg-gray-800 text-black dark:text-white"
-                              >
-                                Click to Sign
-                              </button>
-                            )}
-                          </div>
-
-                          {isModalOpen && (
-                            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                              <div className="bg-white p-6 rounded-lg shadow-lg">
-                                <h2 className="text-lg font-semibold mb-2">Sign Here</h2>
-                                <SignatureCanvas
-                                  ref={sigCanvas}
-                                  penColor="black"
-                                  canvasProps={{ className: "border border-gray-400 w-64 h-32" }}
-                                />
-                                <div className="flex justify-between mt-4">
-                                  <button type="button" onClick={clearSignature} className="px-4 py-2 bg-red-500 text-white rounded">Clear</button>
-                                  <button type="button" onClick={saveSignature} className="px-4 py-2 bg-green-500 text-white rounded">Save</button>
-                                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-500 text-white rounded">Close</button>
-                                </div>
-                              </div>
-                    </div>
-                          )}
-                
-              </div>
-            
                 <div className="flex flex-col items-center justify-center gap-2 mb-8">
-                      <button
-                        type="submit"
-                        className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
-                      >
-                        Submit
-                      </button>
-          </div>
-
-        </form>
-
-    </div>
+                  <button
+                    type="submit"
+                    className="text-gray-100 px-4 py-2 rounded-md bg-gold-200 hover:bg-gold-100 mt-2"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
     </>
   );
-}
+};
 
-export default NewForm
+export default NewForm;

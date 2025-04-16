@@ -5,13 +5,139 @@ import SignatureCanvas from 'react-signature-canvas';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { generateClient } from 'aws-amplify/api';
 import { createJsaForm } from '@/src/graphql/mutations';
 import { CreateJsaFormInput, PersonInput } from '@/src/graphql/API';
 import { useRouter } from 'next/navigation';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { readFileSync } from 'fs';
+import { writeFile as writeFileAsync } from 'fs/promises';
+import { createCanvas, loadImage } from 'canvas';
+
 
 const client = generateClient();
+
+interface Person {
+  name: string;
+  jobTitle: string;
+  signature: string; // Base64 encoded image
+}
+
+interface JsaFormData {
+  customerName: string;
+  effectiveDate: string;
+  location: string;
+  personnel: Person[];
+}
+
+const fillAndUploadPDF = async (
+  formData: JsaFormData,
+  selectedDate: Dayjs | null,
+): Promise<void> => {
+  console.log('Starting PDF generation...');
+
+  // Load the actual template if available, otherwise create a blank A4 PDF
+  let pdfDoc: PDFDocument;
+  try {
+    const templateBytes = readFileSync('./JSAForm.pdf');
+    pdfDoc = await PDFDocument.load(templateBytes);
+    console.log('Loaded JSAForm.pdf template.');
+  } catch (error) {
+    console.warn('Could not load invoice-template.pdf, creating a blank A4 page instead.', error);
+    pdfDoc = await PDFDocument.create();
+    pdfDoc.addPage([595, 842]); // A4 size in points (72 DPI)
+  }
+
+  let page = pdfDoc.getPage(0);
+  const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontSize = 7;
+  const textColor = rgb(0, 0, 0);
+ 
+
+  const customerNameLocation = `${formData.customerName || 'N/A'} - ${formData.location || 'N/A'}`;
+
+  // Customer Name - Adjust x, y to match your template
+  page.drawText(customerNameLocation || 'N/A', { 
+    x: 210, y: 964, size: fontSize, font: helveticaFont, color: textColor });
+    
+
+  // Effective Date - Adjust x, y to match your template
+  page.drawText(selectedDate?.format('YYYY-MM-DD') || formData.effectiveDate || 'N/A', {
+     x: 210, y: 953, size: fontSize, font: helveticaFont, color: textColor });
+  
+
+
+
+
+
+     const personnelRowHeight = 25; // Approximate height of each row in the personnel table
+     let currentY = 412; // Starting Y position for the first row (adjust based on template)
+      const personnelFontSize = 13;
+
+     for (const person of formData.personnel) {
+       // Draw job title
+       page.drawText(person.jobTitle || 'N/A', {
+         x: 45, // Adjust based on template
+         y: currentY + 7, // Center vertically in the cell
+         size: personnelFontSize,
+         font: helveticaFont,
+         color: textColor,
+       });
+   
+       // Draw name
+       page.drawText(person.name || 'N/A', {
+         x: 203, // Adjust based on template
+         y: currentY + 7, // Center vertically in the cell
+         size: personnelFontSize,
+         font: helveticaFont,
+         color: textColor,
+       });
+      
+
+
+
+
+  // Customer Signature (with transparent background, after the footer)
+    if (person.signature) {
+      try {
+        console.log(`'Converting signature for ${person.name} to PNG with transparent background...'`);
+        const startConvert = Date.now();
+
+        const base64Data = person.signature.replace(/^data:image\/png;base64,/, '');
+        const imgBuffer = Buffer.from(base64Data, 'base64');
+
+        // Load the image using node-canvas
+        const img = await loadImage(imgBuffer);
+        const canvas = createCanvas(img.width, img.height);
+        const ctx = canvas.getContext('2d');
+
+        // Do not fill the background to keep it transparent
+        ctx.drawImage(img, 0, 0);
+
+        // Convert to PNG buffer to preserve transparency
+        const pngBuffer = canvas.toBuffer('image/png');
+        console.log(`Signature converted to PNG in ${Date.now() - startConvert}ms.`);
+
+        // Embed the PNG image
+        console.log(`'Embedding signature image (PNG) for ${person.name}...'`);
+        const startEmbed = Date.now();
+        const signatureImage = await pdfDoc.embedPng(pngBuffer);
+        console.log(`Signature embedded in ${Date.now() - startEmbed}ms.`);
+
+        // Draw the signature below the footer
+        page.drawImage(signatureImage, { x: 540, y: currentY -9, width: 80, height: 40 });
+        console.log('Signature drawn on page.');
+      } catch (error) {
+        console.error('Error embedding signature (skipping signature):', error);
+      }
+    }
+  currentY -= personnelRowHeight;
+}
+
+  
+};
+
 
 const NewForm = () => {
     const router = useRouter();
@@ -151,9 +277,6 @@ const NewForm = () => {
       };
       
 
-      {/*Date Picker Logic*/}
-      const [value, setValue] = useState<Date |null>(null);
-
       const openSignatureModal = (index: number) => {
         setCurrentSignatureIndex(index);
         setIsModalOpen(true);
@@ -201,6 +324,9 @@ const NewForm = () => {
                 alert('Please ensure all personnel have signed before submitting.');
                 return;
             }
+
+            const s3Url = await fillAndUploadPDF(formData, selectedDate);
+            console.log('Final product uploaded to S3:', s3Url);
 
             // Format the form data to match the CreateJsaFormInput type
             const jsaData: CreateJsaFormInput = {

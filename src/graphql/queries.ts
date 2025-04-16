@@ -41,6 +41,7 @@ export const getInvoiceForm = /* GraphQL */ `query GetInvoiceForm($WorkTicketID:
     ExtraCharges
     InvoiceTotal
     CustomerSignature
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -99,6 +100,7 @@ export const listInvoiceForms = /* GraphQL */ `query ListInvoiceForms(
       ExtraCharges
       InvoiceTotal
       CustomerSignature
+      FinalProductFile
       createdAt
       updatedAt
       _version
@@ -159,6 +161,7 @@ export const syncInvoiceForms = /* GraphQL */ `query SyncInvoiceForms(
       ExtraCharges
       InvoiceTotal
       CustomerSignature
+      FinalProductFile
       createdAt
       updatedAt
       _version

@@ -89,6 +89,7 @@ type EagerInvoiceForm = {
   readonly ExtraCharges?: number | null;
   readonly InvoiceTotal: number;
   readonly CustomerSignature: string;
+  readonly FinalProductFile?: string | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }
@@ -114,6 +115,7 @@ type LazyInvoiceForm = {
   readonly ExtraCharges?: number | null;
   readonly InvoiceTotal: number;
   readonly CustomerSignature: string;
+  readonly FinalProductFile?: string | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }

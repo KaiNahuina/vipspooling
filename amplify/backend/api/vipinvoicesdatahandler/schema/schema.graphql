@@ -26,6 +26,7 @@ type InvoiceForm
   ExtraCharges: Float
   InvoiceTotal: Float!
   CustomerSignature: String!
+  FinalProductFile: String
 }
 
 type LaborCost {

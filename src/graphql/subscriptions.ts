@@ -43,6 +43,7 @@ export const onCreateInvoiceForm = /* GraphQL */ `subscription OnCreateInvoiceFo
     ExtraCharges
     InvoiceTotal
     CustomerSignature
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -90,6 +91,7 @@ export const onUpdateInvoiceForm = /* GraphQL */ `subscription OnUpdateInvoiceFo
     ExtraCharges
     InvoiceTotal
     CustomerSignature
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -137,6 +139,7 @@ export const onDeleteInvoiceForm = /* GraphQL */ `subscription OnDeleteInvoiceFo
     ExtraCharges
     InvoiceTotal
     CustomerSignature
+    FinalProductFile
     createdAt
     updatedAt
     _version

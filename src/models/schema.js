@@ -124,6 +124,13 @@ export const schema = {
                     "isRequired": true,
                     "attributes": []
                 },
+                "FinalProductFile": {
+                    "name": "FinalProductFile",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": false,
+                    "attributes": []
+                },
                 "createdAt": {
                     "name": "createdAt",
                     "isArray": false,
@@ -696,5 +703,5 @@ export const schema = {
         }
     },
     "codegenVersion": "3.4.4",
-    "version": "96261393d3815511a62d7d5e68be4334"
+    "version": "96bc5931175f219d9d3206520376a201"
 };

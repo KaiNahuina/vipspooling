@@ -44,6 +44,7 @@ export const createInvoiceForm = /* GraphQL */ `mutation CreateInvoiceForm(
     ExtraCharges
     InvoiceTotal
     CustomerSignature
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -92,6 +93,7 @@ export const updateInvoiceForm = /* GraphQL */ `mutation UpdateInvoiceForm(
     ExtraCharges
     InvoiceTotal
     CustomerSignature
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -140,6 +142,7 @@ export const deleteInvoiceForm = /* GraphQL */ `mutation DeleteInvoiceForm(
     ExtraCharges
     InvoiceTotal
     CustomerSignature
+    FinalProductFile
     createdAt
     updatedAt
     _version
