@@ -207,6 +207,13 @@ export const schema = {
                     "isRequired": true,
                     "attributes": []
                 },
+                "CreatedBy": {
+                    "name": "CreatedBy",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
                 "FormDate": {
                     "name": "FormDate",
                     "isArray": false,
@@ -703,5 +710,5 @@ export const schema = {
         }
     },
     "codegenVersion": "3.4.4",
-    "version": "96bc5931175f219d9d3206520376a201"
+    "version": "4450603043c38bad3eefdebe217c7072"
 };

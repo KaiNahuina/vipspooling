@@ -2,16 +2,16 @@
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 
-import {SignInOutput, signIn, confirmSignIn, rememberDevice} from "@aws-amplify/auth";
+import { signIn, confirmSignIn, rememberDevice} from "@aws-amplify/auth";
 
 const LoginForm = () => {
   
-  const router = useRouter(); // To handle redirection after login
+  const router = useRouter(); 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
   const [error, setError] = useState("");
-  const [newPassword, setNewPassword] = useState(""); // New password state
+  const [newPassword, setNewPassword] = useState(""); 
   const [isNewPasswordRequired, setIsNewPasswordRequired] = useState(false);
 
 
@@ -29,7 +29,7 @@ const LoginForm = () => {
         if (newPassword) {
           await confirmSignIn({ challengeResponse: newPassword });
           console.log("Password confirmed successfully!");
-          router.push("/Dashboard");
+          handleNewPasswordSubmit;
         }
       }
       else {
@@ -48,6 +48,7 @@ const LoginForm = () => {
     try {
       if (newPassword) {
         await confirmSignIn({ challengeResponse: newPassword });
+        setIsNewPasswordRequired(true);
         console.log("Password confirmed successfully!");
         router.push("/Dashboard");
       }
@@ -144,10 +145,11 @@ const LoginForm = () => {
           {/* Login Button */}
             <div>
               <button
+              type="button"
                 className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
                 transition ease-in duration-200 text-center text-base font-semibold shadow-md 
                 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"
-                onClick={handleLogin}
+                
               >
                 Login
               </button>

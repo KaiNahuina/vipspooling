@@ -181,6 +181,7 @@ export const syncInvoiceForms = /* GraphQL */ `query SyncInvoiceForms(
 export const getJsaForm = /* GraphQL */ `query GetJsaForm($CustomerName: String!) {
   getJsaForm(CustomerName: $CustomerName) {
     CustomerName
+    CreatedBy
     FormDate
     EffectiveDate
     Location
@@ -218,6 +219,7 @@ export const listJsaForms = /* GraphQL */ `query ListJsaForms(
   ) {
     items {
       CustomerName
+      CreatedBy
       FormDate
       EffectiveDate
       Location
@@ -257,6 +259,7 @@ export const syncJsaForms = /* GraphQL */ `query SyncJsaForms(
   ) {
     items {
       CustomerName
+      CreatedBy
       FormDate
       EffectiveDate
       Location

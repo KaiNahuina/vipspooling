@@ -155,6 +155,7 @@ export const onDeleteInvoiceForm = /* GraphQL */ `subscription OnDeleteInvoiceFo
 export const onCreateJsaForm = /* GraphQL */ `subscription OnCreateJsaForm($filter: ModelSubscriptionJsaFormFilterInput) {
   onCreateJsaForm(filter: $filter) {
     CustomerName
+    CreatedBy
     FormDate
     EffectiveDate
     Location
@@ -179,6 +180,7 @@ export const onCreateJsaForm = /* GraphQL */ `subscription OnCreateJsaForm($filt
 export const onUpdateJsaForm = /* GraphQL */ `subscription OnUpdateJsaForm($filter: ModelSubscriptionJsaFormFilterInput) {
   onUpdateJsaForm(filter: $filter) {
     CustomerName
+    CreatedBy
     FormDate
     EffectiveDate
     Location
@@ -203,6 +205,7 @@ export const onUpdateJsaForm = /* GraphQL */ `subscription OnUpdateJsaForm($filt
 export const onDeleteJsaForm = /* GraphQL */ `subscription OnDeleteJsaForm($filter: ModelSubscriptionJsaFormFilterInput) {
   onDeleteJsaForm(filter: $filter) {
     CustomerName
+    CreatedBy
     FormDate
     EffectiveDate
     Location

@@ -161,6 +161,7 @@ export const createJsaForm = /* GraphQL */ `mutation CreateJsaForm(
 ) {
   createJsaForm(input: $input, condition: $condition) {
     CustomerName
+    CreatedBy
     FormDate
     EffectiveDate
     Location
@@ -188,6 +189,7 @@ export const updateJsaForm = /* GraphQL */ `mutation UpdateJsaForm(
 ) {
   updateJsaForm(input: $input, condition: $condition) {
     CustomerName
+    CreatedBy
     FormDate
     EffectiveDate
     Location
@@ -215,6 +217,7 @@ export const deleteJsaForm = /* GraphQL */ `mutation DeleteJsaForm(
 ) {
   deleteJsaForm(input: $input, condition: $condition) {
     CustomerName
+    CreatedBy
     FormDate
     EffectiveDate
     Location

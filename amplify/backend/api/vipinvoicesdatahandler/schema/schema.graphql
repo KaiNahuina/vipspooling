@@ -60,6 +60,7 @@ type JsaForm
     ]
   ) {
   CustomerName: String! @primaryKey
+  CreatedBy: String!
   FormDate: AWSDate!
   EffectiveDate: AWSDate!
   Location: String!

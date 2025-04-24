@@ -132,6 +132,7 @@ type EagerJsaForm = {
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
   readonly CustomerName: string;
+  readonly CreatedBy: string;
   readonly FormDate: string;
   readonly EffectiveDate: string;
   readonly Location: string;
@@ -146,6 +147,7 @@ type LazyJsaForm = {
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
   readonly CustomerName: string;
+  readonly CreatedBy: string;
   readonly FormDate: string;
   readonly EffectiveDate: string;
   readonly Location: string;

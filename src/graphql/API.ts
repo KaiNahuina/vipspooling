@@ -197,6 +197,7 @@ export type DeleteInvoiceFormInput = {
 
 export type CreateJsaFormInput = {
   CustomerName: string,
+  CreatedBy: string,
   FormDate: string,
   EffectiveDate: string,
   Location: string,
@@ -211,6 +212,7 @@ export type PersonInput = {
 };
 
 export type ModelJsaFormConditionInput = {
+  CreatedBy?: ModelStringInput | null,
   FormDate?: ModelStringInput | null,
   EffectiveDate?: ModelStringInput | null,
   Location?: ModelStringInput | null,
@@ -225,6 +227,7 @@ export type ModelJsaFormConditionInput = {
 export type JsaForm = {
   __typename: "JsaForm",
   CustomerName: string,
+  CreatedBy: string,
   FormDate: string,
   EffectiveDate: string,
   Location: string,
@@ -245,6 +248,7 @@ export type Person = {
 
 export type UpdateJsaFormInput = {
   CustomerName: string,
+  CreatedBy?: string | null,
   FormDate?: string | null,
   EffectiveDate?: string | null,
   Location?: string | null,
@@ -462,6 +466,7 @@ export type ModelInvoiceFormConnection = {
 
 export type ModelJsaFormFilterInput = {
   CustomerName?: ModelStringInput | null,
+  CreatedBy?: ModelStringInput | null,
   FormDate?: ModelStringInput | null,
   EffectiveDate?: ModelStringInput | null,
   Location?: ModelStringInput | null,
@@ -613,6 +618,7 @@ export type ModelSubscriptionFloatInput = {
 
 export type ModelSubscriptionJsaFormFilterInput = {
   CustomerName?: ModelSubscriptionStringInput | null,
+  CreatedBy?: ModelSubscriptionStringInput | null,
   FormDate?: ModelSubscriptionStringInput | null,
   EffectiveDate?: ModelSubscriptionStringInput | null,
   Location?: ModelSubscriptionStringInput | null,
@@ -818,6 +824,7 @@ export type CreateJsaFormMutation = {
   createJsaForm?:  {
     __typename: "JsaForm",
     CustomerName: string,
+    CreatedBy: string,
     FormDate: string,
     EffectiveDate: string,
     Location: string,
@@ -844,6 +851,7 @@ export type UpdateJsaFormMutation = {
   updateJsaForm?:  {
     __typename: "JsaForm",
     CustomerName: string,
+    CreatedBy: string,
     FormDate: string,
     EffectiveDate: string,
     Location: string,
@@ -870,6 +878,7 @@ export type DeleteJsaFormMutation = {
   deleteJsaForm?:  {
     __typename: "JsaForm",
     CustomerName: string,
+    CreatedBy: string,
     FormDate: string,
     EffectiveDate: string,
     Location: string,
@@ -1242,6 +1251,7 @@ export type GetJsaFormQuery = {
   getJsaForm?:  {
     __typename: "JsaForm",
     CustomerName: string,
+    CreatedBy: string,
     FormDate: string,
     EffectiveDate: string,
     Location: string,
@@ -1273,6 +1283,7 @@ export type ListJsaFormsQuery = {
     items:  Array< {
       __typename: "JsaForm",
       CustomerName: string,
+      CreatedBy: string,
       FormDate: string,
       EffectiveDate: string,
       Location: string,
@@ -1306,6 +1317,7 @@ export type SyncJsaFormsQuery = {
     items:  Array< {
       __typename: "JsaForm",
       CustomerName: string,
+      CreatedBy: string,
       FormDate: string,
       EffectiveDate: string,
       Location: string,
@@ -1706,6 +1718,7 @@ export type OnCreateJsaFormSubscription = {
   onCreateJsaForm?:  {
     __typename: "JsaForm",
     CustomerName: string,
+    CreatedBy: string,
     FormDate: string,
     EffectiveDate: string,
     Location: string,
@@ -1731,6 +1744,7 @@ export type OnUpdateJsaFormSubscription = {
   onUpdateJsaForm?:  {
     __typename: "JsaForm",
     CustomerName: string,
+    CreatedBy: string,
     FormDate: string,
     EffectiveDate: string,
     Location: string,
@@ -1756,6 +1770,7 @@ export type OnDeleteJsaFormSubscription = {
   onDeleteJsaForm?:  {
     __typename: "JsaForm",
     CustomerName: string,
+    CreatedBy: string,
     FormDate: string,
     EffectiveDate: string,
     Location: string,

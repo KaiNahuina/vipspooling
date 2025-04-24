@@ -144,6 +144,7 @@ const NewForm = () => {
 
     const [formData, setFormData] = useState({
         customerName: "",  // Customer Name
+        createdBy:"",
         effectiveDate: "",  // Effective Date
         location: "",  // Worksite Location
         personnel: [{ name: "", jobTitle: "", signature: "" }],  // List of personnel (name and job title) Base64 encoded image links or S3 URLs for signatures
@@ -331,6 +332,7 @@ const NewForm = () => {
             // Format the form data to match the CreateJsaFormInput type
             const jsaData: CreateJsaFormInput = {
                 CustomerName: formData.customerName,
+                CreatedBy:formData.createdBy,
                 FormDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString(),
                 EffectiveDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString(),
                 Location: formData.location,
@@ -355,6 +357,7 @@ const NewForm = () => {
                 // Clear the form
                 setFormData({
                     customerName: "",
+                    createdBy:"",
                     effectiveDate: "",
                     location: "",
                     personnel: [

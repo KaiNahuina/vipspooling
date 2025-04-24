@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@auth/core": "^0.38.0",
+    "@aws-amplify/api": "latest",
+    "@aws-amplify/auth": "latest",
+    "@aws-amplify/core": "latest",
     "@aws-amplify/storage": "^6.7.11",
     "@aws-amplify/ui-react": "^6.9.1",
     "@aws-sdk/client-cognito-identity-provider": "^3.768.0",
