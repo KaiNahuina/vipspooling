@@ -74,9 +74,37 @@ const chooseForm = () => {
                 </h5>
                 </a>
               </div>
+
+              
+                <div className='flex justify-end'>
+                    <a onClick={() => router.push("/Dashboard/add-form/cap-form")}
+                    className="cursor-pointer block max-w-sm p-6 bg-white rounded-lg 
+                    shadow-sm hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition
+                    flex flex-col items-center justify-center w-64 h-48"
+                    >
+                    <svg className="h-8 w-8 text-yellow-500" 
+                        width="24" height="24" viewBox="0 0 24 24" 
+                        strokeWidth="2" stroke="currentColor" fill="none" 
+                        strokeLinecap="round" strokeLinejoin="round">
+                      <path stroke="none" d="M0 0h24v24H0z"/>
+                      <rect x="4" y="6" width="16" height="12" rx="2"/>
+                      <circle cx="12" cy="12" r="3"/>
+                      <path d="M6 9l-2 -2"/>
+                      <circle cx="17" cy="8" r="1"/>
+                    </svg>
+
+                    <h5 className="text-2xl ml-6 font-bold tracking-tight text-gray-900 dark:text-white">
+                      New Capillary Form
+                    </h5>
+                    </a>
+                </div>
             
             </div>
+
+            
+
           </div>
+          
         </div>
       </div>
     </>

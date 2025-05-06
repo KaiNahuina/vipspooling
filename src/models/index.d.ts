@@ -68,6 +68,20 @@ export declare type Person = LazyLoading extends LazyLoadingDisabled ? EagerPers
 
 export declare const Person: (new (init: ModelInit<Person>) => Person)
 
+type EagerCapillaryFlush = {
+  readonly Confirmation?: boolean | null;
+  readonly Amount?: number | null;
+}
+
+type LazyCapillaryFlush = {
+  readonly Confirmation?: boolean | null;
+  readonly Amount?: number | null;
+}
+
+export declare type CapillaryFlush = LazyLoading extends LazyLoadingDisabled ? EagerCapillaryFlush : LazyCapillaryFlush
+
+export declare const CapillaryFlush: (new (init: ModelInit<CapillaryFlush>) => CapillaryFlush)
+
 type EagerInvoiceForm = {
   readonly [__modelMeta__]: {
     identifier: CustomIdentifier<InvoiceForm, 'WorkTicketID'>;
@@ -77,9 +91,11 @@ type EagerInvoiceForm = {
   readonly InvoiceDate: string;
   readonly Spooler: string;
   readonly WorkType: string;
+  readonly CableCompany: string;
   readonly CableCompanyLocation: string;
   readonly OilCompany: string;
-  readonly WellNumberName: string;
+  readonly WellName: string;
+  readonly WellNumber: string;
   readonly LaborCosts: (LaborCost | null)[];
   readonly JobType: (string | null)[];
   readonly Consumables: (Consumable | null)[];
@@ -103,9 +119,11 @@ type LazyInvoiceForm = {
   readonly InvoiceDate: string;
   readonly Spooler: string;
   readonly WorkType: string;
+  readonly CableCompany: string;
   readonly CableCompanyLocation: string;
   readonly OilCompany: string;
-  readonly WellNumberName: string;
+  readonly WellName: string;
+  readonly WellNumber: string;
   readonly LaborCosts: (LaborCost | null)[];
   readonly JobType: (string | null)[];
   readonly Consumables: (Consumable | null)[];
@@ -131,12 +149,14 @@ type EagerJsaForm = {
     identifier: CustomIdentifier<JsaForm, 'CustomerName'>;
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
+  readonly WorkTicketID: string;
   readonly CustomerName: string;
   readonly CreatedBy: string;
   readonly FormDate: string;
   readonly EffectiveDate: string;
   readonly Location: string;
   readonly Personnel: (Person | null)[];
+  readonly FinalProductFile?: string | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }
@@ -146,12 +166,14 @@ type LazyJsaForm = {
     identifier: CustomIdentifier<JsaForm, 'CustomerName'>;
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
+  readonly WorkTicketID: string;
   readonly CustomerName: string;
   readonly CreatedBy: string;
   readonly FormDate: string;
   readonly EffectiveDate: string;
   readonly Location: string;
   readonly Personnel: (Person | null)[];
+  readonly FinalProductFile?: string | null;
   readonly createdAt?: string | null;
   readonly updatedAt?: string | null;
 }
@@ -160,6 +182,72 @@ export declare type JsaForm = LazyLoading extends LazyLoadingDisabled ? EagerJsa
 
 export declare const JsaForm: (new (init: ModelInit<JsaForm>) => JsaForm) & {
   copyOf(source: JsaForm, mutator: (draft: MutableModel<JsaForm>) => MutableModel<JsaForm> | void): JsaForm;
+}
+
+type EagerCapillaryForm = {
+  readonly [__modelMeta__]: {
+    identifier: CustomIdentifier<CapillaryForm, 'WorkTicketID'>;
+    readOnlyFields: 'createdAt' | 'updatedAt';
+  };
+  readonly WorkTicketID: string;
+  readonly SubmissionDate: string;
+  readonly Date: string;
+  readonly TechnicianName: string;
+  readonly Customer: string;
+  readonly WellName: string;
+  readonly TypeOfJob: string;
+  readonly VisualConfirmation: string;
+  readonly IntervalPumping: string;
+  readonly PressureWhilePumping: string;
+  readonly PressureBleed: boolean;
+  readonly CapillaryFlush: CapillaryFlush;
+  readonly ManifoldStatus: string;
+  readonly LineTest: string;
+  readonly CapillarySize: string;
+  readonly Metallurgy: number;
+  readonly Length: number;
+  readonly FluidPumped: string;
+  readonly TotalGallons: number;
+  readonly Notes?: string | null;
+  readonly FinalProductFile?: string | null;
+  readonly createdAt?: string | null;
+  readonly updatedAt?: string | null;
+}
+
+type LazyCapillaryForm = {
+  readonly [__modelMeta__]: {
+    identifier: CustomIdentifier<CapillaryForm, 'WorkTicketID'>;
+    readOnlyFields: 'createdAt' | 'updatedAt';
+  };
+  readonly WorkTicketID: string;
+  readonly SubmissionDate: string;
+  readonly Date: string;
+  readonly TechnicianName: string;
+  readonly Customer: string;
+  readonly WellName: string;
+  readonly TypeOfJob: string;
+  readonly VisualConfirmation: string;
+  readonly IntervalPumping: string;
+  readonly PressureWhilePumping: string;
+  readonly PressureBleed: boolean;
+  readonly CapillaryFlush: CapillaryFlush;
+  readonly ManifoldStatus: string;
+  readonly LineTest: string;
+  readonly CapillarySize: string;
+  readonly Metallurgy: number;
+  readonly Length: number;
+  readonly FluidPumped: string;
+  readonly TotalGallons: number;
+  readonly Notes?: string | null;
+  readonly FinalProductFile?: string | null;
+  readonly createdAt?: string | null;
+  readonly updatedAt?: string | null;
+}
+
+export declare type CapillaryForm = LazyLoading extends LazyLoadingDisabled ? EagerCapillaryForm : LazyCapillaryForm
+
+export declare const CapillaryForm: (new (init: ModelInit<CapillaryForm>) => CapillaryForm) & {
+  copyOf(source: CapillaryForm, mutator: (draft: MutableModel<CapillaryForm>) => MutableModel<CapillaryForm> | void): CapillaryForm;
 }
 
 type EagerTemplate = {

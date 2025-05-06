@@ -1,8 +1,8 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import { signIn, confirmSignIn, rememberDevice} from "@aws-amplify/auth";
+import { signIn, confirmSignIn, rememberDevice, getCurrentUser} from "@aws-amplify/auth";
 
 const LoginForm = () => {
   
@@ -14,9 +14,22 @@ const LoginForm = () => {
   const [newPassword, setNewPassword] = useState(""); 
   const [isNewPasswordRequired, setIsNewPasswordRequired] = useState(false);
 
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        await getCurrentUser();
+        console.log("User already authenticated, redirecting to Dashboard");
+        router.push("/Dashboard");
+      } catch (err) {
+        console.log("No authenticated user found");
+      }
+    }
+    checkAuth();
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     try {
       const user = await signIn({ username, password });
@@ -25,6 +38,7 @@ const LoginForm = () => {
       }
   
       if (user.nextStep?.signInStep === "CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED") {
+        setIsNewPasswordRequired(true);
         const newPassword = prompt("Enter a new password:");
         if (newPassword) {
           await confirmSignIn({ challengeResponse: newPassword });
@@ -37,8 +51,13 @@ const LoginForm = () => {
         router.push("/Dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "Invalid username or password.");
-      console.error("Login error:", err);
+      if (err.name === "UserAlreadyAuthenticatedException") {
+        console.log("User already authenticated, redirecting to Dashboard");
+        router.push("/Dashboard");
+      } else {
+        setError(err.message || "Invalid username or password.");
+        console.error("Login error:", err);
+      }
     }
   };
 
@@ -48,7 +67,6 @@ const LoginForm = () => {
     try {
       if (newPassword) {
         await confirmSignIn({ challengeResponse: newPassword });
-        setIsNewPasswordRequired(true);
         console.log("Password confirmed successfully!");
         router.push("/Dashboard");
       }
@@ -145,7 +163,7 @@ const LoginForm = () => {
           {/* Login Button */}
             <div>
               <button
-              type="button"
+              type="submit"
                 className="py-2 px-8 bg-gold-200 hover:bg-gold-100 text-gray w-full 
                 transition ease-in duration-200 text-center text-base font-semibold shadow-md 
                 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none"

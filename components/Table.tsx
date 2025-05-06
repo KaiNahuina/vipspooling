@@ -1,6 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import type { AwsCredentialIdentity } from "@aws-sdk/types";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 interface TableColumn {
   key: string;
@@ -10,7 +14,7 @@ interface TableColumn {
 interface TableProps {
   columns: TableColumn[];
   data?: any[];
-  onEdit?: (item: any) => void;
+  onDownload?: (item: any) => void;
   onDelete?: (item: any) => void;
   onPreview?: (item: any) => void; // Change from (file: string) to (item: any)
   isLoading?: boolean;
@@ -18,10 +22,29 @@ interface TableProps {
   showCheckboxes?: boolean;
 }
 
+// Function to get AWS credentials (reused from your previous code)
+const getCredentials = async (): Promise<AwsCredentialIdentity> => {
+  const session = await fetchAuthSession();
+  if (!session.credentials) throw new Error("No credentials available");
+  return {
+    accessKeyId: session.credentials.accessKeyId,
+    secretAccessKey: session.credentials.secretAccessKey,
+    sessionToken: session.credentials.sessionToken,
+  };
+};
+
+// Initialize S3 client
+const s3Client = new S3Client({
+  region: "us-east-1",
+  credentials: getCredentials,
+});
+
+
+
 const Table: React.FC<TableProps> = ({
   columns,
   data = [],
-  onEdit,
+  onDownload,
   onDelete,
   onPreview,
   isLoading = false,
@@ -105,7 +128,7 @@ const Table: React.FC<TableProps> = ({
                   type="checkbox"
                   checked={isAllSelected}
                   onChange={handleSelectAll}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-gold-200 bg-gray-100 border-gray-300 rounded focus:ring-gold-100"
                 />
               </th>
             )}
@@ -128,7 +151,7 @@ const Table: React.FC<TableProps> = ({
               <tr
                 key={rowId}
                 className={`odd:bg-white even:bg-gray-200 border-b dark:border-gray-700 ${
-                  showCheckboxes && selectedRows.includes(rowId) ? "bg-blue-100" : "bg-white"
+                  showCheckboxes && selectedRows.includes(rowId) ? "bg-gold-200" : "bg-white"
                 }`}
               >
                 {showCheckboxes && (
@@ -137,7 +160,7 @@ const Table: React.FC<TableProps> = ({
                       type="checkbox"
                       checked={selectedRows.includes(rowId)}
                       onChange={() => handleRowSelect(rowId)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-gold-200 bg-gray-100 border-gray-300 rounded focus:ring-gold-100"
                     />
                   </td>
                 )}
@@ -165,7 +188,7 @@ const Table: React.FC<TableProps> = ({
                     <div className="relative">
                       <button
                         type="button"
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-300 dark:hover:bg-gray-700 focus:outline-none"
                         onClick={(e) => handleDropdownClick(e, rowId)}
                       >
                         <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,16 +219,16 @@ const Table: React.FC<TableProps> = ({
           }}
         >
           <div className="py-1" role="menu">
-            {onEdit && (
+            {onDownload && (
               <button
                 onClick={() => {
-                  onEdit(data.find((row) => getRowId(row) === openDropdownId));
+                  onDownload(data.find((row) => getRowId(row) === openDropdownId));
                   setOpenDropdownId(null);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="block w-full text-left px-4 py-2 text-sm text-gray dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
                 role="menuitem"
               >
-                Edit
+                Download
               </button>
             )}
             {onDelete && (
@@ -214,7 +237,7 @@ const Table: React.FC<TableProps> = ({
                   onDelete(data.find((row) => getRowId(row) === openDropdownId));
                   setOpenDropdownId(null);
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                 role="menuitem"
               >
                 Delete

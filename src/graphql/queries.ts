@@ -14,9 +14,11 @@ export const getInvoiceForm = /* GraphQL */ `query GetInvoiceForm($WorkTicketID:
     InvoiceDate
     Spooler
     WorkType
+    CableCompany
     CableCompanyLocation
     OilCompany
-    WellNumberName
+    WellName
+    WellNumber
     LaborCosts {
       rate
       qty
@@ -73,9 +75,11 @@ export const listInvoiceForms = /* GraphQL */ `query ListInvoiceForms(
       InvoiceDate
       Spooler
       WorkType
+      CableCompany
       CableCompanyLocation
       OilCompany
-      WellNumberName
+      WellName
+      WellNumber
       LaborCosts {
         rate
         qty
@@ -134,9 +138,11 @@ export const syncInvoiceForms = /* GraphQL */ `query SyncInvoiceForms(
       InvoiceDate
       Spooler
       WorkType
+      CableCompany
       CableCompanyLocation
       OilCompany
-      WellNumberName
+      WellName
+      WellNumber
       LaborCosts {
         rate
         qty
@@ -180,6 +186,7 @@ export const syncInvoiceForms = /* GraphQL */ `query SyncInvoiceForms(
 >;
 export const getJsaForm = /* GraphQL */ `query GetJsaForm($CustomerName: String!) {
   getJsaForm(CustomerName: $CustomerName) {
+    WorkTicketID
     CustomerName
     CreatedBy
     FormDate
@@ -191,6 +198,7 @@ export const getJsaForm = /* GraphQL */ `query GetJsaForm($CustomerName: String!
       Signature
       __typename
     }
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -218,6 +226,7 @@ export const listJsaForms = /* GraphQL */ `query ListJsaForms(
     sortDirection: $sortDirection
   ) {
     items {
+      WorkTicketID
       CustomerName
       CreatedBy
       FormDate
@@ -229,6 +238,7 @@ export const listJsaForms = /* GraphQL */ `query ListJsaForms(
         Signature
         __typename
       }
+      FinalProductFile
       createdAt
       updatedAt
       _version
@@ -258,6 +268,7 @@ export const syncJsaForms = /* GraphQL */ `query SyncJsaForms(
     lastSync: $lastSync
   ) {
     items {
+      WorkTicketID
       CustomerName
       CreatedBy
       FormDate
@@ -269,6 +280,7 @@ export const syncJsaForms = /* GraphQL */ `query SyncJsaForms(
         Signature
         __typename
       }
+      FinalProductFile
       createdAt
       updatedAt
       _version
@@ -284,6 +296,155 @@ export const syncJsaForms = /* GraphQL */ `query SyncJsaForms(
 ` as GeneratedQuery<
   APITypes.SyncJsaFormsQueryVariables,
   APITypes.SyncJsaFormsQuery
+>;
+export const getCapillaryForm = /* GraphQL */ `query GetCapillaryForm($WorkTicketID: String!) {
+  getCapillaryForm(WorkTicketID: $WorkTicketID) {
+    WorkTicketID
+    SubmissionDate
+    Date
+    TechnicianName
+    Customer
+    WellName
+    TypeOfJob
+    VisualConfirmation
+    IntervalPumping
+    PressureWhilePumping
+    PressureBleed
+    CapillaryFlush {
+      Confirmation
+      Amount
+      __typename
+    }
+    ManifoldStatus
+    LineTest
+    CapillarySize
+    Metallurgy
+    Length
+    FluidPumped
+    TotalGallons
+    Notes
+    FinalProductFile
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.GetCapillaryFormQueryVariables,
+  APITypes.GetCapillaryFormQuery
+>;
+export const listCapillaryForms = /* GraphQL */ `query ListCapillaryForms(
+  $WorkTicketID: String
+  $filter: ModelCapillaryFormFilterInput
+  $limit: Int
+  $nextToken: String
+  $sortDirection: ModelSortDirection
+) {
+  listCapillaryForms(
+    WorkTicketID: $WorkTicketID
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    sortDirection: $sortDirection
+  ) {
+    items {
+      WorkTicketID
+      SubmissionDate
+      Date
+      TechnicianName
+      Customer
+      WellName
+      TypeOfJob
+      VisualConfirmation
+      IntervalPumping
+      PressureWhilePumping
+      PressureBleed
+      CapillaryFlush {
+        Confirmation
+        Amount
+        __typename
+      }
+      ManifoldStatus
+      LineTest
+      CapillarySize
+      Metallurgy
+      Length
+      FluidPumped
+      TotalGallons
+      Notes
+      FinalProductFile
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.ListCapillaryFormsQueryVariables,
+  APITypes.ListCapillaryFormsQuery
+>;
+export const syncCapillaryForms = /* GraphQL */ `query SyncCapillaryForms(
+  $filter: ModelCapillaryFormFilterInput
+  $limit: Int
+  $nextToken: String
+  $lastSync: AWSTimestamp
+) {
+  syncCapillaryForms(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    lastSync: $lastSync
+  ) {
+    items {
+      WorkTicketID
+      SubmissionDate
+      Date
+      TechnicianName
+      Customer
+      WellName
+      TypeOfJob
+      VisualConfirmation
+      IntervalPumping
+      PressureWhilePumping
+      PressureBleed
+      CapillaryFlush {
+        Confirmation
+        Amount
+        __typename
+      }
+      ManifoldStatus
+      LineTest
+      CapillarySize
+      Metallurgy
+      Length
+      FluidPumped
+      TotalGallons
+      Notes
+      FinalProductFile
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}
+` as GeneratedQuery<
+  APITypes.SyncCapillaryFormsQueryVariables,
+  APITypes.SyncCapillaryFormsQuery
 >;
 export const getTemplate = /* GraphQL */ `query GetTemplate($TemplateID: ID!) {
   getTemplate(TemplateID: $TemplateID) {

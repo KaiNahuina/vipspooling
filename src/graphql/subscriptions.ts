@@ -16,9 +16,11 @@ export const onCreateInvoiceForm = /* GraphQL */ `subscription OnCreateInvoiceFo
     InvoiceDate
     Spooler
     WorkType
+    CableCompany
     CableCompanyLocation
     OilCompany
-    WellNumberName
+    WellName
+    WellNumber
     LaborCosts {
       rate
       qty
@@ -64,9 +66,11 @@ export const onUpdateInvoiceForm = /* GraphQL */ `subscription OnUpdateInvoiceFo
     InvoiceDate
     Spooler
     WorkType
+    CableCompany
     CableCompanyLocation
     OilCompany
-    WellNumberName
+    WellName
+    WellNumber
     LaborCosts {
       rate
       qty
@@ -112,9 +116,11 @@ export const onDeleteInvoiceForm = /* GraphQL */ `subscription OnDeleteInvoiceFo
     InvoiceDate
     Spooler
     WorkType
+    CableCompany
     CableCompanyLocation
     OilCompany
-    WellNumberName
+    WellName
+    WellNumber
     LaborCosts {
       rate
       qty
@@ -154,6 +160,7 @@ export const onDeleteInvoiceForm = /* GraphQL */ `subscription OnDeleteInvoiceFo
 >;
 export const onCreateJsaForm = /* GraphQL */ `subscription OnCreateJsaForm($filter: ModelSubscriptionJsaFormFilterInput) {
   onCreateJsaForm(filter: $filter) {
+    WorkTicketID
     CustomerName
     CreatedBy
     FormDate
@@ -165,6 +172,7 @@ export const onCreateJsaForm = /* GraphQL */ `subscription OnCreateJsaForm($filt
       Signature
       __typename
     }
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -179,6 +187,7 @@ export const onCreateJsaForm = /* GraphQL */ `subscription OnCreateJsaForm($filt
 >;
 export const onUpdateJsaForm = /* GraphQL */ `subscription OnUpdateJsaForm($filter: ModelSubscriptionJsaFormFilterInput) {
   onUpdateJsaForm(filter: $filter) {
+    WorkTicketID
     CustomerName
     CreatedBy
     FormDate
@@ -190,6 +199,7 @@ export const onUpdateJsaForm = /* GraphQL */ `subscription OnUpdateJsaForm($filt
       Signature
       __typename
     }
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -204,6 +214,7 @@ export const onUpdateJsaForm = /* GraphQL */ `subscription OnUpdateJsaForm($filt
 >;
 export const onDeleteJsaForm = /* GraphQL */ `subscription OnDeleteJsaForm($filter: ModelSubscriptionJsaFormFilterInput) {
   onDeleteJsaForm(filter: $filter) {
+    WorkTicketID
     CustomerName
     CreatedBy
     FormDate
@@ -215,6 +226,7 @@ export const onDeleteJsaForm = /* GraphQL */ `subscription OnDeleteJsaForm($filt
       Signature
       __typename
     }
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -226,6 +238,129 @@ export const onDeleteJsaForm = /* GraphQL */ `subscription OnDeleteJsaForm($filt
 ` as GeneratedSubscription<
   APITypes.OnDeleteJsaFormSubscriptionVariables,
   APITypes.OnDeleteJsaFormSubscription
+>;
+export const onCreateCapillaryForm = /* GraphQL */ `subscription OnCreateCapillaryForm(
+  $filter: ModelSubscriptionCapillaryFormFilterInput
+) {
+  onCreateCapillaryForm(filter: $filter) {
+    WorkTicketID
+    SubmissionDate
+    Date
+    TechnicianName
+    Customer
+    WellName
+    TypeOfJob
+    VisualConfirmation
+    IntervalPumping
+    PressureWhilePumping
+    PressureBleed
+    CapillaryFlush {
+      Confirmation
+      Amount
+      __typename
+    }
+    ManifoldStatus
+    LineTest
+    CapillarySize
+    Metallurgy
+    Length
+    FluidPumped
+    TotalGallons
+    Notes
+    FinalProductFile
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnCreateCapillaryFormSubscriptionVariables,
+  APITypes.OnCreateCapillaryFormSubscription
+>;
+export const onUpdateCapillaryForm = /* GraphQL */ `subscription OnUpdateCapillaryForm(
+  $filter: ModelSubscriptionCapillaryFormFilterInput
+) {
+  onUpdateCapillaryForm(filter: $filter) {
+    WorkTicketID
+    SubmissionDate
+    Date
+    TechnicianName
+    Customer
+    WellName
+    TypeOfJob
+    VisualConfirmation
+    IntervalPumping
+    PressureWhilePumping
+    PressureBleed
+    CapillaryFlush {
+      Confirmation
+      Amount
+      __typename
+    }
+    ManifoldStatus
+    LineTest
+    CapillarySize
+    Metallurgy
+    Length
+    FluidPumped
+    TotalGallons
+    Notes
+    FinalProductFile
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnUpdateCapillaryFormSubscriptionVariables,
+  APITypes.OnUpdateCapillaryFormSubscription
+>;
+export const onDeleteCapillaryForm = /* GraphQL */ `subscription OnDeleteCapillaryForm(
+  $filter: ModelSubscriptionCapillaryFormFilterInput
+) {
+  onDeleteCapillaryForm(filter: $filter) {
+    WorkTicketID
+    SubmissionDate
+    Date
+    TechnicianName
+    Customer
+    WellName
+    TypeOfJob
+    VisualConfirmation
+    IntervalPumping
+    PressureWhilePumping
+    PressureBleed
+    CapillaryFlush {
+      Confirmation
+      Amount
+      __typename
+    }
+    ManifoldStatus
+    LineTest
+    CapillarySize
+    Metallurgy
+    Length
+    FluidPumped
+    TotalGallons
+    Notes
+    FinalProductFile
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedSubscription<
+  APITypes.OnDeleteCapillaryFormSubscriptionVariables,
+  APITypes.OnDeleteCapillaryFormSubscription
 >;
 export const onCreateTemplate = /* GraphQL */ `subscription OnCreateTemplate($filter: ModelSubscriptionTemplateFilterInput) {
   onCreateTemplate(filter: $filter) {

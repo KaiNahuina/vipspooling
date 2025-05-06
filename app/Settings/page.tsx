@@ -219,13 +219,7 @@ const Settings = () => {
           <h2 className="text-sm sm:text-base text-black dark:text-white">Preferences</h2>
 
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
-              <h2 className="text-sm sm:text-base text-black dark:text-white">Email Notifications</h2>
-              <label className="relative inline-block h-8 w-14 cursor-pointer rounded-full bg-gray-300 dark:bg-gray-500 transition">
-                <input className="peer sr-only" id="EmailNotifications" type="checkbox" />
-                <span className="absolute inset-y-0 left-0 m-1 h-6 w-6 rounded-full bg-gray-300 dark:bg-gray-500 transition-all peer-checked:left-6 peer-checked:bg-white"></span>
-              </label>
-            </div>
+            
 
             <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-700 dark:bg-gray-600 p-4 rounded-lg shadow-md">
               <h2 className="text-sm sm:text-base text-black dark:text-white">Dark Mode</h2>

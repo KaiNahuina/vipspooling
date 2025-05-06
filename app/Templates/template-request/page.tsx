@@ -66,6 +66,7 @@ const newTemplate = () => {
               <option value="Admins">Invoice Form</option>
               <option value="Users">JSA Form</option>
               <option value="PricingPlan">Pricing Plan</option>
+              <option value="OtherForm">Other Form Type</option>
             </select>
           </div>
           <div className="mb-5 w-full flex justify-center items-center flex-col">

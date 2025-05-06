@@ -31,6 +31,13 @@ export const schema = {
                     "isRequired": true,
                     "attributes": []
                 },
+                "CableCompany": {
+                    "name": "CableCompany",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
                 "CableCompanyLocation": {
                     "name": "CableCompanyLocation",
                     "isArray": false,
@@ -45,8 +52,15 @@ export const schema = {
                     "isRequired": true,
                     "attributes": []
                 },
-                "WellNumberName": {
-                    "name": "WellNumberName",
+                "WellName": {
+                    "name": "WellName",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "WellNumber": {
+                    "name": "WellNumber",
                     "isArray": false,
                     "type": "String",
                     "isRequired": true,
@@ -186,10 +200,25 @@ export const schema = {
                                 "provider": "userPools",
                                 "allow": "groups",
                                 "groups": [
-                                    "User"
+                                    "Manager"
                                 ],
                                 "operations": [
-                                    "create"
+                                    "create",
+                                    "update",
+                                    "delete",
+                                    "read"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Operator"
+                                ],
+                                "operations": [
+                                    "create",
+                                    "read"
                                 ]
                             }
                         ]
@@ -200,6 +229,13 @@ export const schema = {
         "JsaForm": {
             "name": "JsaForm",
             "fields": {
+                "WorkTicketID": {
+                    "name": "WorkTicketID",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
                 "CustomerName": {
                     "name": "CustomerName",
                     "isArray": false,
@@ -244,6 +280,13 @@ export const schema = {
                     "isRequired": false,
                     "attributes": [],
                     "isArrayNullable": false
+                },
+                "FinalProductFile": {
+                    "name": "FinalProductFile",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": false,
+                    "attributes": []
                 },
                 "createdAt": {
                     "name": "createdAt",
@@ -300,10 +343,257 @@ export const schema = {
                                 "provider": "userPools",
                                 "allow": "groups",
                                 "groups": [
-                                    "User"
+                                    "Manager"
                                 ],
                                 "operations": [
-                                    "create"
+                                    "create",
+                                    "update",
+                                    "delete",
+                                    "read"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Operator"
+                                ],
+                                "operations": [
+                                    "create",
+                                    "read"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "CapillaryForm": {
+            "name": "CapillaryForm",
+            "fields": {
+                "WorkTicketID": {
+                    "name": "WorkTicketID",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "SubmissionDate": {
+                    "name": "SubmissionDate",
+                    "isArray": false,
+                    "type": "AWSDate",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "Date": {
+                    "name": "Date",
+                    "isArray": false,
+                    "type": "AWSDate",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "TechnicianName": {
+                    "name": "TechnicianName",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "Customer": {
+                    "name": "Customer",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "WellName": {
+                    "name": "WellName",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "TypeOfJob": {
+                    "name": "TypeOfJob",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "VisualConfirmation": {
+                    "name": "VisualConfirmation",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "IntervalPumping": {
+                    "name": "IntervalPumping",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "PressureWhilePumping": {
+                    "name": "PressureWhilePumping",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "PressureBleed": {
+                    "name": "PressureBleed",
+                    "isArray": false,
+                    "type": "Boolean",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "CapillaryFlush": {
+                    "name": "CapillaryFlush",
+                    "isArray": false,
+                    "type": {
+                        "nonModel": "CapillaryFlush"
+                    },
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "ManifoldStatus": {
+                    "name": "ManifoldStatus",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "LineTest": {
+                    "name": "LineTest",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "CapillarySize": {
+                    "name": "CapillarySize",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "Metallurgy": {
+                    "name": "Metallurgy",
+                    "isArray": false,
+                    "type": "Int",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "Length": {
+                    "name": "Length",
+                    "isArray": false,
+                    "type": "Int",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "FluidPumped": {
+                    "name": "FluidPumped",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "TotalGallons": {
+                    "name": "TotalGallons",
+                    "isArray": false,
+                    "type": "Int",
+                    "isRequired": true,
+                    "attributes": []
+                },
+                "Notes": {
+                    "name": "Notes",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": false,
+                    "attributes": []
+                },
+                "FinalProductFile": {
+                    "name": "FinalProductFile",
+                    "isArray": false,
+                    "type": "String",
+                    "isRequired": false,
+                    "attributes": []
+                },
+                "createdAt": {
+                    "name": "createdAt",
+                    "isArray": false,
+                    "type": "AWSDateTime",
+                    "isRequired": false,
+                    "attributes": [],
+                    "isReadOnly": true
+                },
+                "updatedAt": {
+                    "name": "updatedAt",
+                    "isArray": false,
+                    "type": "AWSDateTime",
+                    "isRequired": false,
+                    "attributes": [],
+                    "isReadOnly": true
+                }
+            },
+            "syncable": true,
+            "pluralName": "CapillaryForms",
+            "attributes": [
+                {
+                    "type": "model",
+                    "properties": {}
+                },
+                {
+                    "type": "key",
+                    "properties": {
+                        "fields": [
+                            "WorkTicketID"
+                        ]
+                    }
+                },
+                {
+                    "type": "auth",
+                    "properties": {
+                        "rules": [
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Admin"
+                                ],
+                                "operations": [
+                                    "create",
+                                    "update",
+                                    "delete",
+                                    "read"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Manager"
+                                ],
+                                "operations": [
+                                    "read",
+                                    "create",
+                                    "delete"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Operator"
+                                ],
+                                "operations": [
+                                    "create",
+                                    "read"
                                 ]
                             }
                         ]
@@ -404,7 +694,7 @@ export const schema = {
                                 "provider": "userPools",
                                 "allow": "groups",
                                 "groups": [
-                                    "User"
+                                    "Operator"
                                 ],
                                 "operations": [
                                     "read"
@@ -495,6 +785,34 @@ export const schema = {
                                 "allow": "groups",
                                 "groups": [
                                     "Admin"
+                                ],
+                                "operations": [
+                                    "create",
+                                    "update",
+                                    "delete",
+                                    "read"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Manager"
+                                ],
+                                "operations": [
+                                    "create",
+                                    "update",
+                                    "delete",
+                                    "read"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Operator"
                                 ],
                                 "operations": [
                                     "create",
@@ -593,6 +911,28 @@ export const schema = {
                                     "create",
                                     "update",
                                     "delete",
+                                    "read"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Manager"
+                                ],
+                                "operations": [
+                                    "read"
+                                ]
+                            },
+                            {
+                                "groupClaim": "cognito:groups",
+                                "provider": "userPools",
+                                "allow": "groups",
+                                "groups": [
+                                    "Operator"
+                                ],
+                                "operations": [
                                     "read"
                                 ]
                             }
@@ -707,8 +1047,27 @@ export const schema = {
                     "attributes": []
                 }
             }
+        },
+        "CapillaryFlush": {
+            "name": "CapillaryFlush",
+            "fields": {
+                "Confirmation": {
+                    "name": "Confirmation",
+                    "isArray": false,
+                    "type": "Boolean",
+                    "isRequired": false,
+                    "attributes": []
+                },
+                "Amount": {
+                    "name": "Amount",
+                    "isArray": false,
+                    "type": "Int",
+                    "isRequired": false,
+                    "attributes": []
+                }
+            }
         }
     },
     "codegenVersion": "3.4.4",
-    "version": "4450603043c38bad3eefdebe217c7072"
+    "version": "9c7df549ea6a7f6bf2aef602be9d0829"
 };

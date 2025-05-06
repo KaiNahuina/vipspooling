@@ -28,19 +28,27 @@ interface TokenPayload{
 const AuthContext = createContext<{ 
   isAuthenticated: boolean | null;
   permissions: Permissions | null; 
+  role: string | null;
 }>({
   isAuthenticated: null,
   permissions: null,
+  role: null,
 });
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if(!context){
+    throw new Error("useAuth must be used within an AuthContext Provider");
+  }
+  return context;
+}
 
 
 
 function ClientLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [permissions, setPermissions] = useState<Permissions | null>(null);
-  const [role, setRole] = useState<String | null>();
+  const [role, setRole] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -51,13 +59,40 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
 
     async function checkAuth() {
       try {
-        await getCurrentUser();
-        if (isMounted) return; //Maybe check this to ensure proper permissions
+        if (noAuthRequired.includes(pathname) && isAuthenticated === null) {
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setPermissions(null);
+            setRole(null);
+          }
+          return;
+        }
 
-        const session = await fetchAuthSession();
-        const idToken = session.tokens?.idToken?.toString();
-        if(!idToken) throw console.error("No ID token found");
+        // Fetch session with forceRefresh false to avoid unnecessary token refresh
+        const session = await fetchAuthSession({ forceRefresh: false });
+        console.log("Session:", session); // Debug session
 
+        if (!session.tokens?.idToken) {
+          if (isMounted) {
+            setIsAuthenticated(false);
+            setPermissions(null);
+            setRole(null);
+            if (!noAuthRequired.includes(pathname)) {
+              router.replace("/Login");
+            }
+          }
+          return;
+        }
+
+        // Fetch credentials
+        if (!session.credentials) {
+          throw new Error("No credentials found in session");
+        }
+        console.log("Credentials initialized:", session.credentials);
+
+        
+        // Decode ID token
+        const idToken = session.tokens.idToken.toString();
         const decoded = decodeJWT(idToken);
         const payload = decoded.payload as TokenPayload;
         const perms: Permissions = {
@@ -65,23 +100,28 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
           preferredRole: payload["cognito:preferred_role"] || null,
           sub: payload.sub || null,
           username: payload["cognito:username"] || null,
-        }
+        };
 
-        if(!session.credentials){
+        // Check credentials (Identity Pool)
+        if (!session.credentials) {
           throw new Error("No credentials found in session");
         }
         console.log("Credentials initialized:", session.credentials);
 
+        // Optional: Validate user
+        await getCurrentUser();
 
-        setIsAuthenticated(true);
-        setPermissions(perms);
-        setRole(perms.preferredRole);
-
-      } catch (error) {
-        console.error("Auth check error:", error);
+        if (isMounted) {
+          setIsAuthenticated(true);
+          setPermissions(perms);
+          setRole(perms.preferredRole);
+        }
+      } catch (error: any) {
+        console.error("Auth check error:", error.message);
         if (isMounted) {
           setIsAuthenticated(false);
           setPermissions(null);
+          setRole(null);
           if (!noAuthRequired.includes(pathname)) {
             router.replace("/Login");
           }
@@ -102,6 +142,8 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, pathname, router]);
 
+
+
   if (isAuthenticated === null) return (/* From Uiverse.io by Javierrocadev */ 
   <div className="flex flex-row gap-2">
     <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce"></div>
@@ -119,7 +161,7 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{isAuthenticated, permissions}}>
+    <AuthContext.Provider value={{isAuthenticated, permissions, role}}>
       <div className="min-h-screen min-w-full">
         {pathname !== "/Login" && (
             <div className="fixed top-0 left-0 right-0 z-50">

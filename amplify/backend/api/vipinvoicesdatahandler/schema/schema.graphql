@@ -7,16 +7,23 @@ type InvoiceForm
         groups: ["Admin"]
         operations: [create, update, delete, read]
       }
-      { allow: groups, groups: ["User"], operations: [create] }
+      {
+        allow: groups
+        groups: ["Manager"]
+        operations: [create, update, delete, read]
+      }
+      { allow: groups, groups: ["Operator"], operations: [create, read] }
     ]
   ) {
   WorkTicketID: ID! @primaryKey
   InvoiceDate: AWSDate!
   Spooler: String!
   WorkType: String!
+  CableCompany: String!
   CableCompanyLocation: String!
   OilCompany: String!
-  WellNumberName: String!
+  WellName: String!
+  WellNumber: String!
   LaborCosts: [LaborCost]!
   JobType: [String]!
   Consumables: [Consumable]!
@@ -56,21 +63,69 @@ type JsaForm
         groups: ["Admin"]
         operations: [create, update, delete, read]
       }
-      { allow: groups, groups: ["User"], operations: [create] }
+      {
+        allow: groups
+        groups: ["Manager"]
+        operations: [create, update, delete, read]
+      }
+      { allow: groups, groups: ["Operator"], operations: [create, read] }
     ]
   ) {
+  WorkTicketID: String!
   CustomerName: String! @primaryKey
   CreatedBy: String!
   FormDate: AWSDate!
   EffectiveDate: AWSDate!
   Location: String!
   Personnel: [Person]!
+  FinalProductFile: String
 }
 
 type Person {
   Role: String!
   PersonName: String!
   Signature: String!
+}
+
+type CapillaryForm
+  @model
+  @auth(
+    rules: [
+      {
+        allow: groups
+        groups: ["Admin"]
+        operations: [create, update, delete, read]
+      }
+      { allow: groups, groups: ["Manager"], operations: [read, create, delete] }
+      { allow: groups, groups: ["Operator"], operations: [create, read] }
+    ]
+  ) {
+  WorkTicketID: String! @primaryKey
+  SubmissionDate: AWSDate!
+  Date: AWSDate!
+  TechnicianName: String!
+  Customer: String!
+  WellName: String!
+  TypeOfJob: String!
+  VisualConfirmation: String!
+  IntervalPumping: String!
+  PressureWhilePumping: String!
+  PressureBleed: Boolean!
+  CapillaryFlush: CapillaryFlush!
+  ManifoldStatus: String!
+  LineTest: String!
+  CapillarySize: String!
+  Metallurgy: Int!
+  Length: Int!
+  FluidPumped: String!
+  TotalGallons: Int!
+  Notes: String
+  FinalProductFile: String
+}
+
+type CapillaryFlush {
+  Confirmation: Boolean
+  Amount: Int
 }
 
 type Template
@@ -82,7 +137,7 @@ type Template
         groups: ["Admin"]
         operations: [create, update, delete, read]
       }
-      { allow: groups, groups: ["User"], operations: [read] }
+      { allow: groups, groups: ["Operator"], operations: [read] }
     ]
   ) {
   TemplateID: ID! @primaryKey
@@ -99,6 +154,16 @@ type User
       {
         allow: groups
         groups: ["Admin"]
+        operations: [create, update, delete, read]
+      }
+      {
+        allow: groups
+        groups: ["Manager"]
+        operations: [create, update, delete, read]
+      }
+      {
+        allow: groups
+        groups: ["Operator"]
         operations: [create, update, delete, read]
       }
     ]
@@ -119,6 +184,8 @@ type PricingPlan
         groups: ["Admin"]
         operations: [create, update, delete, read]
       }
+      { allow: groups, groups: ["Manager"], operations: [read] }
+      { allow: groups, groups: ["Operator"], operations: [read] }
     ]
   ) {
   id: ID! @primaryKey

@@ -31,7 +31,11 @@ function RootLayout({
       
       <body className={`${inter.className} relative bg-transparent flex justify-center items-center 
       flex-col gap-10 min-h-screen`}>
-        <ClientLayout>{children}</ClientLayout>
+        
+          <ClientLayout>
+            {children}
+          
+          </ClientLayout>
       </body>
     </html>
   );

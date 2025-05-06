@@ -17,9 +17,11 @@ export const createInvoiceForm = /* GraphQL */ `mutation CreateInvoiceForm(
     InvoiceDate
     Spooler
     WorkType
+    CableCompany
     CableCompanyLocation
     OilCompany
-    WellNumberName
+    WellName
+    WellNumber
     LaborCosts {
       rate
       qty
@@ -66,9 +68,11 @@ export const updateInvoiceForm = /* GraphQL */ `mutation UpdateInvoiceForm(
     InvoiceDate
     Spooler
     WorkType
+    CableCompany
     CableCompanyLocation
     OilCompany
-    WellNumberName
+    WellName
+    WellNumber
     LaborCosts {
       rate
       qty
@@ -115,9 +119,11 @@ export const deleteInvoiceForm = /* GraphQL */ `mutation DeleteInvoiceForm(
     InvoiceDate
     Spooler
     WorkType
+    CableCompany
     CableCompanyLocation
     OilCompany
-    WellNumberName
+    WellName
+    WellNumber
     LaborCosts {
       rate
       qty
@@ -160,6 +166,7 @@ export const createJsaForm = /* GraphQL */ `mutation CreateJsaForm(
   $condition: ModelJsaFormConditionInput
 ) {
   createJsaForm(input: $input, condition: $condition) {
+    WorkTicketID
     CustomerName
     CreatedBy
     FormDate
@@ -171,6 +178,7 @@ export const createJsaForm = /* GraphQL */ `mutation CreateJsaForm(
       Signature
       __typename
     }
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -188,6 +196,7 @@ export const updateJsaForm = /* GraphQL */ `mutation UpdateJsaForm(
   $condition: ModelJsaFormConditionInput
 ) {
   updateJsaForm(input: $input, condition: $condition) {
+    WorkTicketID
     CustomerName
     CreatedBy
     FormDate
@@ -199,6 +208,7 @@ export const updateJsaForm = /* GraphQL */ `mutation UpdateJsaForm(
       Signature
       __typename
     }
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -216,6 +226,7 @@ export const deleteJsaForm = /* GraphQL */ `mutation DeleteJsaForm(
   $condition: ModelJsaFormConditionInput
 ) {
   deleteJsaForm(input: $input, condition: $condition) {
+    WorkTicketID
     CustomerName
     CreatedBy
     FormDate
@@ -227,6 +238,7 @@ export const deleteJsaForm = /* GraphQL */ `mutation DeleteJsaForm(
       Signature
       __typename
     }
+    FinalProductFile
     createdAt
     updatedAt
     _version
@@ -238,6 +250,132 @@ export const deleteJsaForm = /* GraphQL */ `mutation DeleteJsaForm(
 ` as GeneratedMutation<
   APITypes.DeleteJsaFormMutationVariables,
   APITypes.DeleteJsaFormMutation
+>;
+export const createCapillaryForm = /* GraphQL */ `mutation CreateCapillaryForm(
+  $input: CreateCapillaryFormInput!
+  $condition: ModelCapillaryFormConditionInput
+) {
+  createCapillaryForm(input: $input, condition: $condition) {
+    WorkTicketID
+    SubmissionDate
+    Date
+    TechnicianName
+    Customer
+    WellName
+    TypeOfJob
+    VisualConfirmation
+    IntervalPumping
+    PressureWhilePumping
+    PressureBleed
+    CapillaryFlush {
+      Confirmation
+      Amount
+      __typename
+    }
+    ManifoldStatus
+    LineTest
+    CapillarySize
+    Metallurgy
+    Length
+    FluidPumped
+    TotalGallons
+    Notes
+    FinalProductFile
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.CreateCapillaryFormMutationVariables,
+  APITypes.CreateCapillaryFormMutation
+>;
+export const updateCapillaryForm = /* GraphQL */ `mutation UpdateCapillaryForm(
+  $input: UpdateCapillaryFormInput!
+  $condition: ModelCapillaryFormConditionInput
+) {
+  updateCapillaryForm(input: $input, condition: $condition) {
+    WorkTicketID
+    SubmissionDate
+    Date
+    TechnicianName
+    Customer
+    WellName
+    TypeOfJob
+    VisualConfirmation
+    IntervalPumping
+    PressureWhilePumping
+    PressureBleed
+    CapillaryFlush {
+      Confirmation
+      Amount
+      __typename
+    }
+    ManifoldStatus
+    LineTest
+    CapillarySize
+    Metallurgy
+    Length
+    FluidPumped
+    TotalGallons
+    Notes
+    FinalProductFile
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.UpdateCapillaryFormMutationVariables,
+  APITypes.UpdateCapillaryFormMutation
+>;
+export const deleteCapillaryForm = /* GraphQL */ `mutation DeleteCapillaryForm(
+  $input: DeleteCapillaryFormInput!
+  $condition: ModelCapillaryFormConditionInput
+) {
+  deleteCapillaryForm(input: $input, condition: $condition) {
+    WorkTicketID
+    SubmissionDate
+    Date
+    TechnicianName
+    Customer
+    WellName
+    TypeOfJob
+    VisualConfirmation
+    IntervalPumping
+    PressureWhilePumping
+    PressureBleed
+    CapillaryFlush {
+      Confirmation
+      Amount
+      __typename
+    }
+    ManifoldStatus
+    LineTest
+    CapillarySize
+    Metallurgy
+    Length
+    FluidPumped
+    TotalGallons
+    Notes
+    FinalProductFile
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+` as GeneratedMutation<
+  APITypes.DeleteCapillaryFormMutationVariables,
+  APITypes.DeleteCapillaryFormMutation
 >;
 export const createTemplate = /* GraphQL */ `mutation CreateTemplate(
   $input: CreateTemplateInput!

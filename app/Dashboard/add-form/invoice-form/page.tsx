@@ -1,21 +1,22 @@
 "use client";
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 import { generateClient } from 'aws-amplify/api';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import type { AwsCredentialIdentity } from '@aws-sdk/types';
 import { createInvoiceForm } from '@/src/graphql/mutations';
 import { CreateInvoiceFormInput, LaborCostInput, ConsumableInput, CableDetailInput } from '@/src/graphql/API';
 import { useRouter } from 'next/navigation';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { readFileSync, writeFileSync } from 'fs';
-import {writeFile as writeFileAsync} from 'fs/promises';
-import {createCanvas, loadImage} from 'canvas';
+import { getTemplate } from '@/utils/template';
+import DOMPurify from "dompurify";
+
 
 const client = generateClient();
 
@@ -33,6 +34,16 @@ const s3Client = new S3Client({
   region: 'us-east-1',
   credentials: getCredentials,
 });
+
+const lambdaClient = new LambdaClient({
+  region: "us-east-1",
+  credentials: getCredentials,
+});
+
+const sanitizeInput = (value: string): string => {
+  return DOMPurify.sanitize(value, { USE_PROFILES: { html: true } });
+};
+
 
 // Define types for form data
 interface Rate {
@@ -83,16 +94,18 @@ type JobTypeCheckboxes = {
 const fillAndUploadPDF = async (
   formData: FormData,
   selectedDate: Dayjs | null,
-  jobTypeCheckboxes: JobTypeCheckboxes
+  jobTypeCheckboxes: JobTypeCheckboxes,
 ) => {
   console.log('Starting PDF generation...');
 
-  // Load the actual template if available, otherwise create a blank A4 PDF
   let pdfDoc: PDFDocument;
   try {
-    const templateBytes = readFileSync('./InvoiceForm.pdf');
+    
+    
+    const templateBytes = await getTemplate('InvoiceForm.pdf');
     pdfDoc = await PDFDocument.load(templateBytes);
     console.log('Loaded InvoiceForm.pdf template.');
+
   } catch (error) {
     console.warn('Could not load invoice-template.pdf, creating a blank A4 page instead.', error);
     pdfDoc = await PDFDocument.create();
@@ -104,16 +117,30 @@ const fillAndUploadPDF = async (
   const fontSize = 10;
   const textColor = rgb(0, 0, 0);
 
+  const sanitizedFormData = {
+    workTicketNo: sanitizeInput(formData.workTicketNo),
+    spooler: sanitizeInput(formData.spooler),
+    workType: sanitizeInput(formData.workType),
+    cableCompany: sanitizeInput(formData.cableCompany),
+    cableCompanyLocation: sanitizeInput(formData.cableCompanyLocation),
+    oilCompany: sanitizeInput(formData.oilCompany),
+    wellNumber: sanitizeInput(formData.wellNumber),
+    wellName: sanitizeInput(formData.wellName),
+    reelNumber: sanitizeInput(formData.reelNumber),
+    cableType: sanitizeInput(formData.cableType),
+    notes: sanitizeInput(formData.notes),
+  };
+
   // Work Information 
-  page.drawText(formData.workTicketNo || 'N/A', { x: 100, y: 825, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.workTicketNo || 'N/A', { x: 100, y: 825, size: fontSize, font: helveticaFont, color: textColor });
   page.drawText(selectedDate?.format('YYYY-MM-DD') || 'N/A', { x: 46.8, y: 804, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.spooler || 'N/A', { x: 62.9, y: 779, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.workType || 'N/A', { x: 77.5, y: 759, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.cableCompany || 'N/A', { x: 99.8, y: 714, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.cableCompanyLocation || 'N/A', { x: 144, y: 694, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.oilCompany || 'N/A', { x: 84.4, y: 669, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.wellNumber || 'N/A', { x: 402.3, y: 694, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.wellName || 'N/A', { x: 392.3, y: 669, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.spooler || 'N/A', { x: 62.9, y: 779, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.workType || 'N/A', { x: 77.5, y: 759, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.cableCompany || 'N/A', { x: 99.8, y: 714, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.cableCompanyLocation || 'N/A', { x: 144, y: 694, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.oilCompany || 'N/A', { x: 84.4, y: 669, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.wellNumber || 'N/A', { x: 402.3, y: 694, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.wellName || 'N/A', { x: 392.3, y: 669, size: fontSize, font: helveticaFont, color: textColor });
 
   // Labor Costs
   const laborStartY = 627;
@@ -158,7 +185,8 @@ const fillAndUploadPDF = async (
   let currentY = 450; 
     const consumablesRowHeight = 26;
     formData.consumables.forEach((consumable: Consumable, index: number) => {
-      page.drawText(consumable.item || 'N/A', { x: 52, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
+      const sanitizedItem = sanitizeInput(consumable.item);
+      page.drawText(sanitizedItem || 'N/A', { x: 52, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
       page.drawText(consumable.qty || '0', { x: 260, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
       page.drawText(`$${consumable.rate || 0}`, { x: 360, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
       page.drawText(`$${consumable.amount.toFixed(2)}`, { x: 489, y: currentY, size: fontSize, font: helveticaFont, color: textColor });
@@ -166,11 +194,11 @@ const fillAndUploadPDF = async (
   });
 
   
-if (formData.notes) {
+if (sanitizedFormData.notes) {
     const maxWidth = 550; 
     const lineHeight = 14;
     let currentY = 150; 
-    const words = formData.notes.split(' ');
+    const words = sanitizedFormData.notes.split(' ');
     let line = ''; 
     const lines: string[] = [];
   
@@ -205,8 +233,8 @@ if (formData.notes) {
 
   // Footer
   page.drawText(formData.cableLength || 'N/A', { x: 105, y: 68, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.reelNumber || 'N/A', { x: 290, y: 68, size: fontSize, font: helveticaFont, color: textColor });
-  page.drawText(formData.cableType || 'N/A', { x: 82, y: 47, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.reelNumber || 'N/A', { x: 290, y: 68, size: fontSize, font: helveticaFont, color: textColor });
+  page.drawText(sanitizedFormData.cableType || 'N/A', { x: 82, y: 47, size: fontSize, font: helveticaFont, color: textColor });
   page.drawText(`$${formData.extraCharges || 0}`, { x: 290, y: 47, size: fontSize, font: helveticaFont, color: textColor });
 
   // Invoice Total
@@ -216,32 +244,25 @@ if (formData.notes) {
   // Customer Signature
   if (formData.signature) {
     try {
-      console.log('Converting signature to JPEG...');
-      const startConvert = Date.now();
-
-      const fs = require('fs');      
-      const base64Data = formData.signature.replace(/^data:image\/png;base64,/, '');
-      const imgBuffer = Buffer.from(base64Data, 'base64');
-        
-
-      // Load the image using node-canvas
-      const img = await loadImage(imgBuffer);
-      const canvas = createCanvas(img.width, img.height);
-      const ctx = canvas.getContext('2d');
-
-      // Fill the background with white to remove transparency
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0);
-
-      // Convert to JPEG buffer
-      const jpegBuffer = canvas.toBuffer('image/jpeg', { quality: 0.95 });
-      console.log(`Signature converted to JPEG in ${Date.now() - startConvert}ms.`);
-
-      // Embed the JPEG image
-      console.log('Embedding signature image (JPEG)...');
+      console.log('Embedding signature image (PNG)...');
       const startEmbed = Date.now();
-      const signatureImage = await pdfDoc.embedJpg(jpegBuffer);
+
+      // Validate base64 string
+      if (!formData.signature.startsWith('data:image/png;base64,')) {
+        throw new Error('Invalid signature format: Not a PNG base64 string');
+      }
+
+      // Remove data URL prefix and decode base64
+      const base64Data = formData.signature.replace(/^data:image\/png;base64,/, '');
+      if (!base64Data) {
+        throw new Error('Signature is empty or invalid');
+      }
+
+      // Convert base64 to binary
+      const imgBuffer = Buffer.from(base64Data, 'base64');
+
+      // Embed PNG directly
+      const signatureImage = await pdfDoc.embedPng(imgBuffer);
       console.log(`Signature embedded in ${Date.now() - startEmbed}ms.`);
 
       // Draw the signature
@@ -249,9 +270,9 @@ if (formData.notes) {
       console.log('Signature drawn on page.');
     } catch (error) {
       console.error('Error embedding signature (skipping signature):', error);
-      // Continue without the signature
     }
   }
+
 
   // Save and upload to S3
   const pdfBytes = await pdfDoc.save();
@@ -307,12 +328,77 @@ const NewForm = () => {
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [isLoadingWorkTicket, setIsLoadingWorkTicket] = useState(false);
   const sigCanvas = useRef<SignatureCanvas | null>(null);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const hasFetchedWorkTicket = useRef(false); // Rate limiting flag
+
+
+  // Fetch WorkTicketID from Lambda
+ useEffect(() => {
+    if (hasFetchedWorkTicket.current) return; // Prevent multiple invocations
+    hasFetchedWorkTicket.current = true;
+
+    const fetchWorkTicketID = async () => {
+      setIsLoadingWorkTicket(true);
+      setApiError(null);
+      try {
+        const command = new InvokeCommand({
+          FunctionName: "GenerateWorkTicketID-Invoices",
+          Payload: JSON.stringify({}),
+        });
+        const response = await lambdaClient.send(command);
+        console.log("Lambda response:", response);
+
+        if (!response.Payload) {
+          throw new Error("Empty response from Lambda");
+        }
+
+        let payload;
+        try {
+          const payloadString = Buffer.from(response.Payload).toString();
+          console.log("Payload string:", payloadString);
+          payload = JSON.parse(payloadString);
+          console.log("Parsed payload:", payload);
+        } catch (parseError: any) {
+          throw new Error(`Failed to parse Lambda response: ${parseError.message}`);
+        }
+
+        let bodyPayload;
+        if (payload.body) {
+          try {
+            bodyPayload = JSON.parse(payload.body);
+            console.log("Parsed body payload:", bodyPayload);
+          } catch (parseError: any) {
+            throw new Error(`Failed to parse body payload: ${parseError.message}`);
+          }
+        } else {
+          bodyPayload = payload; // Fallback to payload if no body field
+        }
+
+        if (response.StatusCode === 200 && bodyPayload.workTicketID) {
+          setFormData((prev) => ({ ...prev, workTicketNo: bodyPayload.workTicketID }));
+        } else if (bodyPayload.error) {
+          throw new Error(`${bodyPayload.error}: ${bodyPayload.details || "No details provided"}`);
+        } else {
+          throw new Error("No workTicketID found in response");
+        }
+      } catch (error: any) {
+        console.error("Error fetching WorkTicketID:", error);
+        setApiError(`Failed to generate Work Ticket ID: ${error.message}`);
+      } finally {
+        setIsLoadingWorkTicket(false);
+      }
+    };
+
+    fetchWorkTicketID();
+  }, []);
 
   const handleConsumableChange = (index: number, field: keyof Consumable, value: string) => {
     const updatedConsumables = [...formData.consumables];
-    updatedConsumables[index][field] = value as never;
+    updatedConsumables[index][field] = sanitizeInput(value) as never;
 
     if (field === "qty" || field === "rate") {
       const qty = Number(updatedConsumables[index].qty) || 0;
@@ -341,9 +427,22 @@ const NewForm = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
+    const textFields = [
+      "spooler",
+      "workType",
+      "cableCompany",
+      "cableCompanyLocation",
+      "oilCompany",
+      "wellNumber",
+      "wellName",
+      "reelNumber",
+      "cableType",
+      "notes",
+    ];
+    const sanitizedValue = textFields.includes(id) ? sanitizeInput(value) : value;
     setFormData(prev => ({
       ...prev,
-      [id]: value
+      [id]: sanitizedValue
     }));
   };
 
@@ -392,8 +491,42 @@ const NewForm = () => {
     }));
   };
 
+  const validateForm = () => {
+    const newErrors: string[] = [];
+
+    if (!formData.workTicketNo) newErrors.push("Work Ticket # is required.");
+    if (!selectedDate) newErrors.push("Date is required.");
+    if (!formData.spooler) newErrors.push("Spooler Name is required.");
+    if (!formData.workType) newErrors.push("Work Type is required.");
+    if (!formData.cableCompany) newErrors.push("Cable Company is required.");
+    if (!formData.cableCompanyLocation) newErrors.push("Cable Company Location is required.");
+    if (!formData.oilCompany) newErrors.push("Oil Company is required.");
+    if (!formData.wellName) newErrors.push("Well Name is required.");
+    if (!formData.wellNumber) newErrors.push("Well Number is required.");
+    if (!formData.reelNumber) newErrors.push("Reel Number is required.");
+    if (!formData.signature) newErrors.push("Customer Signature is required.");
+
+    // Validate JobType (at least one must be selected)
+    const jobTypes = Object.keys(jobTypeCheckboxes).filter(key => jobTypeCheckboxes[key as keyof JobTypeCheckboxes]);
+    if (jobTypes.length === 0) newErrors.push("At least one Job Type must be selected.");
+
+    // Validate LaborCosts (at least one must have qty and rate)
+    const validLaborCosts = formData.rates.some(rate => Number(rate.quantity) > 0 && Number(rate.rate) > 0);
+    if (!validLaborCosts) newErrors.push("At least one Labor Cost must have a valid quantity and rate.");
+
+    // Validate Consumables (at least one must have item, qty, and rate)
+    const validConsumables = formData.consumables.some(c => c.item && Number(c.qty) > 0 && Number(c.rate) > 0);
+    if (!validConsumables) newErrors.push("At least one Consumable must have an item, quantity, and rate.");
+
+    setErrors(newErrors);
+    return newErrors.length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       if (!formData.signature) {
@@ -404,18 +537,49 @@ const NewForm = () => {
       const s3Url = await fillAndUploadPDF(formData, selectedDate, jobTypeCheckboxes);
       console.log('Final product uploaded to S3:', s3Url);
 
+      const jobTypes = Object.keys(jobTypeCheckboxes).filter(key => jobTypeCheckboxes[key as keyof JobTypeCheckboxes]);
+
+      // Ensure LaborCosts has at least one valid entry
+      let laborCosts: LaborCostInput[] = formData.rates.map((rate: Rate) => ({
+        rate: Number(rate.rate) || 0,
+        qty: Number(rate.quantity) || 0,
+        amount: rate.total,
+      })).filter(lc => lc.qty > 0 && lc.rate > 0);
+      if (laborCosts.length === 0) {
+        laborCosts = [{ rate: 0, qty: 1, amount: 0 }]; // Default if none valid
+      }
+
+      // Ensure Consumables has at least one valid entry
+      let consumables: ConsumableInput[] = formData.consumables.map((consumable: Consumable) => ({
+        item: sanitizeInput(consumable.item) || "None",
+        qty: Number(consumable.qty) || 0,
+        rate: Number(consumable.rate) || 0,
+        amount: consumable.amount,
+      })).filter(c => c.item && c.qty > 0 && c.rate > 0);
+      if (consumables.length === 0) {
+        consumables = [{ item: "None", qty: 1, rate: 0, amount: 0 }]; // Default if none valid
+      }
+
+      // Ensure JobType has at least one entry
+      if (jobTypes.length === 0) {
+        jobTypes.push("None");
+      }
+
       const invoiceData: CreateInvoiceFormInput = {
         WorkTicketID: formData.workTicketNo,
         InvoiceDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString().split('T')[0],
-        Spooler: formData.spooler,
-        WorkType: formData.workType,
-        CableCompanyLocation: formData.cableCompanyLocation,
-        OilCompany: formData.oilCompany,
-        WellNumberName: formData.wellNumber,
-        ReelNumber: formData.reelNumber,
+        Spooler: sanitizeInput(formData.spooler),
+        WorkType: sanitizeInput(formData.workType),
+        CableCompany: sanitizeInput(formData.cableCompany),
+        CableCompanyLocation: sanitizeInput(formData.cableCompanyLocation),
+        OilCompany: sanitizeInput(formData.oilCompany),
+        WellName:sanitizeInput(formData.wellName),
+        WellNumber: sanitizeInput(formData.wellNumber),
+        ReelNumber: sanitizeInput(formData.reelNumber),
         ExtraCharges: Number(formData.extraCharges) || 0,
-        Notes: formData.notes || "",
+        Notes: sanitizeInput(formData.notes) || "",
         CustomerSignature: formData.signature,
+        FinalProductFile:s3Url,
         InvoiceTotal: formData.rates.reduce((sum: number, rate: Rate) => sum + rate.total, 0) +
                       formData.consumables.reduce((sum: number, consumable: Consumable) => sum + consumable.amount, 0) +
                       Number(formData.extraCharges || 0),
@@ -425,13 +589,13 @@ const NewForm = () => {
           amount: rate.total
         } as LaborCostInput)),
         Consumables: formData.consumables.map((consumable: Consumable) => ({
-          item: consumable.item,
+          item: sanitizeInput(consumable.item),
           qty: Number(consumable.qty) || 0,
           rate: Number(consumable.rate) || 0,
           amount: consumable.amount
         } as ConsumableInput)),
         CableDetails: {
-          CableType: formData.cableType || "",
+          CableType: sanitizeInput(formData.cableType) || "",
           CableLength: Number(formData.cableLength) || 0
         } as CableDetailInput,
         JobType: Object.keys(jobTypeCheckboxes).filter(key => jobTypeCheckboxes[key as keyof JobTypeCheckboxes])
@@ -527,9 +691,19 @@ const NewForm = () => {
             <div className="w-full flex flex-col items-center bg-white dark:bg-gray-100 px-4 py-10 rounded-[5px]">
               <div className="flex flex-col items-center justify-center gap-2 mb-8">
                 <h1 className='text-black text-3xl dark:text-white'>
-                  New form
+                  New Invoice form
                 </h1>
               </div>
+
+              {errors.length > 0 && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                  <ul>
+                    {errors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               <form className="w-full" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-8">
@@ -539,8 +713,12 @@ const NewForm = () => {
                       type="text"
                       id="workTicketNo"
                       value={formData.workTicketNo}
-                      onChange={handleInputChange}
-                      placeholder="Work Ticket #"
+                      readOnly
+                      placeholder={
+                        isLoadingWorkTicket
+                          ? "Generating Work Ticket #..."
+                          : "Work Ticket #"
+                      }
                       className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
                     />
                   </div>
@@ -583,14 +761,15 @@ const NewForm = () => {
                     </LocalizationProvider>
                   </div>
 
+                  
                   <div>
-                    <label htmlFor="spooler" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler</label>
+                    <label htmlFor="spooler" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Spooler First and Last Name</label>
                     <input
                       type="text"
                       id="spooler"
                       value={formData.spooler}
                       onChange={handleInputChange}
-                      placeholder="Spooler"
+                      placeholder="Spooler Name"
                       className="border rounded-lg px-3 py-2 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
                     />
                   </div>
