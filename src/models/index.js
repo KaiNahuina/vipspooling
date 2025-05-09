@@ -4,7 +4,7 @@ import { schema } from './schema';
 
 
 
-const { InvoiceForm, JsaForm, CapillaryForm, Template, User, PricingPlan, LaborCost, Consumable, CableDetail, Person, CapillaryFlush } = initSchema(schema);
+const { InvoiceForm, JsaForm, CapillaryForm, Template, User, PricingPlan, LaborCost, Consumable, CableDetail, Person } = initSchema(schema);
 
 export {
   InvoiceForm,
@@ -16,6 +16,5 @@ export {
   LaborCost,
   Consumable,
   CableDetail,
-  Person,
-  CapillaryFlush
+  Person
 };

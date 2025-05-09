@@ -383,7 +383,7 @@ export const schema = {
                     "name": "SubmissionDate",
                     "isArray": false,
                     "type": "AWSDate",
-                    "isRequired": true,
+                    "isRequired": false,
                     "attributes": []
                 },
                 "Date": {
@@ -445,16 +445,14 @@ export const schema = {
                 "PressureBleed": {
                     "name": "PressureBleed",
                     "isArray": false,
-                    "type": "Boolean",
+                    "type": "String",
                     "isRequired": true,
                     "attributes": []
                 },
                 "CapillaryFlush": {
                     "name": "CapillaryFlush",
                     "isArray": false,
-                    "type": {
-                        "nonModel": "CapillaryFlush"
-                    },
+                    "type": "String",
                     "isRequired": true,
                     "attributes": []
                 },
@@ -482,14 +480,14 @@ export const schema = {
                 "Metallurgy": {
                     "name": "Metallurgy",
                     "isArray": false,
-                    "type": "Int",
+                    "type": "String",
                     "isRequired": true,
                     "attributes": []
                 },
                 "Length": {
                     "name": "Length",
                     "isArray": false,
-                    "type": "Int",
+                    "type": "String",
                     "isRequired": true,
                     "attributes": []
                 },
@@ -503,7 +501,7 @@ export const schema = {
                 "TotalGallons": {
                     "name": "TotalGallons",
                     "isArray": false,
-                    "type": "Int",
+                    "type": "String",
                     "isRequired": true,
                     "attributes": []
                 },
@@ -543,7 +541,12 @@ export const schema = {
             "attributes": [
                 {
                     "type": "model",
-                    "properties": {}
+                    "properties": {
+                        "timestamps": {
+                            "createdAt": "createdAt",
+                            "updatedAt": "updatedAt"
+                        }
+                    }
                 },
                 {
                     "type": "key",
@@ -581,7 +584,8 @@ export const schema = {
                                 "operations": [
                                     "read",
                                     "create",
-                                    "delete"
+                                    "delete",
+                                    "update"
                                 ]
                             },
                             {
@@ -593,7 +597,8 @@ export const schema = {
                                 ],
                                 "operations": [
                                     "create",
-                                    "read"
+                                    "read",
+                                    "update"
                                 ]
                             }
                         ]
@@ -1047,27 +1052,8 @@ export const schema = {
                     "attributes": []
                 }
             }
-        },
-        "CapillaryFlush": {
-            "name": "CapillaryFlush",
-            "fields": {
-                "Confirmation": {
-                    "name": "Confirmation",
-                    "isArray": false,
-                    "type": "Boolean",
-                    "isRequired": false,
-                    "attributes": []
-                },
-                "Amount": {
-                    "name": "Amount",
-                    "isArray": false,
-                    "type": "Int",
-                    "isRequired": false,
-                    "attributes": []
-                }
-            }
         }
     },
     "codegenVersion": "3.4.4",
-    "version": "9c7df549ea6a7f6bf2aef602be9d0829"
+    "version": "9d3f0c4eae7fb98215ee45e6dd66977e"
 };

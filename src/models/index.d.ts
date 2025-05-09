@@ -68,20 +68,6 @@ export declare type Person = LazyLoading extends LazyLoadingDisabled ? EagerPers
 
 export declare const Person: (new (init: ModelInit<Person>) => Person)
 
-type EagerCapillaryFlush = {
-  readonly Confirmation?: boolean | null;
-  readonly Amount?: number | null;
-}
-
-type LazyCapillaryFlush = {
-  readonly Confirmation?: boolean | null;
-  readonly Amount?: number | null;
-}
-
-export declare type CapillaryFlush = LazyLoading extends LazyLoadingDisabled ? EagerCapillaryFlush : LazyCapillaryFlush
-
-export declare const CapillaryFlush: (new (init: ModelInit<CapillaryFlush>) => CapillaryFlush)
-
 type EagerInvoiceForm = {
   readonly [__modelMeta__]: {
     identifier: CustomIdentifier<InvoiceForm, 'WorkTicketID'>;
@@ -190,7 +176,7 @@ type EagerCapillaryForm = {
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
   readonly WorkTicketID: string;
-  readonly SubmissionDate: string;
+  readonly SubmissionDate?: string | null;
   readonly Date: string;
   readonly TechnicianName: string;
   readonly Customer: string;
@@ -199,15 +185,15 @@ type EagerCapillaryForm = {
   readonly VisualConfirmation: string;
   readonly IntervalPumping: string;
   readonly PressureWhilePumping: string;
-  readonly PressureBleed: boolean;
-  readonly CapillaryFlush: CapillaryFlush;
+  readonly PressureBleed: string;
+  readonly CapillaryFlush: string;
   readonly ManifoldStatus: string;
   readonly LineTest: string;
   readonly CapillarySize: string;
-  readonly Metallurgy: number;
-  readonly Length: number;
+  readonly Metallurgy: string;
+  readonly Length: string;
   readonly FluidPumped: string;
-  readonly TotalGallons: number;
+  readonly TotalGallons: string;
   readonly Notes?: string | null;
   readonly FinalProductFile?: string | null;
   readonly createdAt?: string | null;
@@ -220,7 +206,7 @@ type LazyCapillaryForm = {
     readOnlyFields: 'createdAt' | 'updatedAt';
   };
   readonly WorkTicketID: string;
-  readonly SubmissionDate: string;
+  readonly SubmissionDate?: string | null;
   readonly Date: string;
   readonly TechnicianName: string;
   readonly Customer: string;
@@ -229,15 +215,15 @@ type LazyCapillaryForm = {
   readonly VisualConfirmation: string;
   readonly IntervalPumping: string;
   readonly PressureWhilePumping: string;
-  readonly PressureBleed: boolean;
-  readonly CapillaryFlush: CapillaryFlush;
+  readonly PressureBleed: string;
+  readonly CapillaryFlush: string;
   readonly ManifoldStatus: string;
   readonly LineTest: string;
   readonly CapillarySize: string;
-  readonly Metallurgy: number;
-  readonly Length: number;
+  readonly Metallurgy: string;
+  readonly Length: string;
   readonly FluidPumped: string;
-  readonly TotalGallons: number;
+  readonly TotalGallons: string;
   readonly Notes?: string | null;
   readonly FinalProductFile?: string | null;
   readonly createdAt?: string | null;

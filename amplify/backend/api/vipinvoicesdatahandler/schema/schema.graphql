@@ -88,7 +88,7 @@ type Person {
 }
 
 type CapillaryForm
-  @model
+  @model(timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" })
   @auth(
     rules: [
       {
@@ -96,12 +96,20 @@ type CapillaryForm
         groups: ["Admin"]
         operations: [create, update, delete, read]
       }
-      { allow: groups, groups: ["Manager"], operations: [read, create, delete] }
-      { allow: groups, groups: ["Operator"], operations: [create, read] }
+      {
+        allow: groups
+        groups: ["Manager"]
+        operations: [read, create, delete, update]
+      }
+      {
+        allow: groups
+        groups: ["Operator"]
+        operations: [create, read, update]
+      }
     ]
   ) {
   WorkTicketID: String! @primaryKey
-  SubmissionDate: AWSDate!
+  SubmissionDate: AWSDate
   Date: AWSDate!
   TechnicianName: String!
   Customer: String!
@@ -110,22 +118,17 @@ type CapillaryForm
   VisualConfirmation: String!
   IntervalPumping: String!
   PressureWhilePumping: String!
-  PressureBleed: Boolean!
-  CapillaryFlush: CapillaryFlush!
+  PressureBleed: String!
+  CapillaryFlush: String!
   ManifoldStatus: String!
   LineTest: String!
   CapillarySize: String!
-  Metallurgy: Int!
-  Length: Int!
+  Metallurgy: String!
+  Length: String!
   FluidPumped: String!
-  TotalGallons: Int!
+  TotalGallons: String!
   Notes: String
   FinalProductFile: String
-}
-
-type CapillaryFlush {
-  Confirmation: Boolean
-  Amount: Int
 }
 
 type Template

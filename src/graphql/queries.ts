@@ -310,11 +310,7 @@ export const getCapillaryForm = /* GraphQL */ `query GetCapillaryForm($WorkTicke
     IntervalPumping
     PressureWhilePumping
     PressureBleed
-    CapillaryFlush {
-      Confirmation
-      Amount
-      __typename
-    }
+    CapillaryFlush
     ManifoldStatus
     LineTest
     CapillarySize
@@ -362,11 +358,7 @@ export const listCapillaryForms = /* GraphQL */ `query ListCapillaryForms(
       IntervalPumping
       PressureWhilePumping
       PressureBleed
-      CapillaryFlush {
-        Confirmation
-        Amount
-        __typename
-      }
+      CapillaryFlush
       ManifoldStatus
       LineTest
       CapillarySize
@@ -416,11 +408,7 @@ export const syncCapillaryForms = /* GraphQL */ `query SyncCapillaryForms(
       IntervalPumping
       PressureWhilePumping
       PressureBleed
-      CapillaryFlush {
-        Confirmation
-        Amount
-        __typename
-      }
+      CapillaryFlush
       ManifoldStatus
       LineTest
       CapillarySize

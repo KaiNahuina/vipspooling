@@ -267,11 +267,7 @@ export const createCapillaryForm = /* GraphQL */ `mutation CreateCapillaryForm(
     IntervalPumping
     PressureWhilePumping
     PressureBleed
-    CapillaryFlush {
-      Confirmation
-      Amount
-      __typename
-    }
+    CapillaryFlush
     ManifoldStatus
     LineTest
     CapillarySize
@@ -309,11 +305,7 @@ export const updateCapillaryForm = /* GraphQL */ `mutation UpdateCapillaryForm(
     IntervalPumping
     PressureWhilePumping
     PressureBleed
-    CapillaryFlush {
-      Confirmation
-      Amount
-      __typename
-    }
+    CapillaryFlush
     ManifoldStatus
     LineTest
     CapillarySize
@@ -351,11 +343,7 @@ export const deleteCapillaryForm = /* GraphQL */ `mutation DeleteCapillaryForm(
     IntervalPumping
     PressureWhilePumping
     PressureBleed
-    CapillaryFlush {
-      Confirmation
-      Amount
-      __typename
-    }
+    CapillaryFlush
     ManifoldStatus
     LineTest
     CapillarySize

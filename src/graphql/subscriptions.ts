@@ -254,11 +254,7 @@ export const onCreateCapillaryForm = /* GraphQL */ `subscription OnCreateCapilla
     IntervalPumping
     PressureWhilePumping
     PressureBleed
-    CapillaryFlush {
-      Confirmation
-      Amount
-      __typename
-    }
+    CapillaryFlush
     ManifoldStatus
     LineTest
     CapillarySize
@@ -295,11 +291,7 @@ export const onUpdateCapillaryForm = /* GraphQL */ `subscription OnUpdateCapilla
     IntervalPumping
     PressureWhilePumping
     PressureBleed
-    CapillaryFlush {
-      Confirmation
-      Amount
-      __typename
-    }
+    CapillaryFlush
     ManifoldStatus
     LineTest
     CapillarySize
@@ -336,11 +328,7 @@ export const onDeleteCapillaryForm = /* GraphQL */ `subscription OnDeleteCapilla
     IntervalPumping
     PressureWhilePumping
     PressureBleed
-    CapillaryFlush {
-      Confirmation
-      Amount
-      __typename
-    }
+    CapillaryFlush
     ManifoldStatus
     LineTest
     CapillarySize

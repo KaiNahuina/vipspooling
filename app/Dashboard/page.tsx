@@ -67,7 +67,6 @@ interface JsaForm {
 
 interface CapillaryForm{
   WorkTicketID: string;
-  SubmissionDate: string;
   Date: string;
   TechnicianName: string;
   Customer: string;
