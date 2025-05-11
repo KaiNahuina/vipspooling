@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { AwsCredentialIdentity } from "@aws-sdk/types";
 import { fetchAuthSession } from "aws-amplify/auth";
 
@@ -58,7 +57,11 @@ const Table: React.FC<TableProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (openDropdownId) setOpenDropdownId(null);
+      const dropdown = document.querySelector(`[role="menu"]`);
+      if (openDropdownId && dropdown && !dropdown.contains(event.target as Node)) {
+        console.log('Closing dropdown due to click outside');
+        setOpenDropdownId(null);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -222,7 +225,15 @@ const Table: React.FC<TableProps> = ({
             {onDownload && (
               <button
                 onClick={() => {
-                  onDownload(data.find((row) => getRowId(row) === openDropdownId));
+                  const selectedRow = data.find((row) => getRowId(row) === openDropdownId);
+                  console.log('Download button clicked for rowId:', openDropdownId, 'row:', selectedRow);
+                  if(selectedRow){
+                    onDownload(selectedRow);
+                  }else{
+                    console.error('No row found for rowId:', openDropdownId);
+                    alert('Error: Selected Row not found');
+                  }
+
                   setOpenDropdownId(null);
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-gray dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"

@@ -5,11 +5,12 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { generateClient } from 'aws-amplify/api';
 import { listInvoiceForms, listJsaForms, listCapillaryForms } from '@/src/graphql/queries';
-import { deleteInvoiceForm, deleteJsaForm, deleteCapillaryForm } from '@/src/graphql/mutations';
+import { deleteInvoiceForm, deleteJsaForm, deleteCapillaryForm} from '@/src/graphql/mutations';
+import { getCapillaryForm, getInvoiceForm, getJsaForm } from '@/src/graphql/queries';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import awsconfig from '@/src/aws-exports';
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { AwsCredentialIdentity } from "@aws-sdk/types";
 import { fetchAuthSession } from "aws-amplify/auth";
@@ -47,6 +48,7 @@ interface InvoiceForm {
   ReelNumber: string;
   InvoiceTotal: number;
   FinalProductFile?: string | null;
+  _version: number;
 }
 
 interface JsaForm {
@@ -62,6 +64,7 @@ interface JsaForm {
     Signature: string;
   } | null>;
   FinalProductFile?: string | null;
+  _version: number;
 }
 
 
@@ -72,35 +75,47 @@ interface CapillaryForm{
   Customer: string;
   WellName: string;
   FinalProductFile?: string | null;
+  _version: number;
 }
 
 const downloadFile = async (s3Url: string, fileName: string) => {
+  console.log('Starting downloadFile with s3Url:', s3Url, 'fileName:', fileName);
   try {
     
+    if (!s3Url.startsWith('s3://')) {
+      throw new Error(`Invalid S3 URL format: ${s3Url}`);
+    }
+
     const match = s3Url.match(/^s3:\/\/([^/]+)\/(.+)$/);
     if (!match) {
       throw new Error("Invalid S3 URL format");
     }
     const [, bucket, key] = match;
+    console.log('Parsed S3 URL - Bucket:', bucket, 'Key:', key);
 
     const command = new GetObjectCommand({
       Bucket: bucket,
       Key: key,
     });
 
-    // Generate pre-signed URL (expires in 1 hour)
+    console.log('Generating pre-signed URL...');
     const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    console.log('Pre-signed URL generated:', url);
 
     // Fetch the file and trigger download
+    console.log('Fetching file from pre-signed URL...');
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error("Failed to fetch file");
+      throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
     }
+    console.log('File fetched successfully');
+
     const blob = await response.blob();
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = downloadUrl;
     link.download = fileName;
+    console.log('Triggering download for file:', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -133,7 +148,7 @@ const jsaColumns = [
 ];
 
 const CapillaryColumns = [
-  { key: 'SubmissionDate', header: 'Submission Date' },
+  { key: 'WorkTicketID', header: 'Work Ticket ID' },
   { key: 'Date', header: 'Date'},
   { key: 'TechnicianName', header: 'Technician Name' },
   { key: 'Customer', header: 'Customer' },
@@ -236,58 +251,159 @@ const Dashboard = () => {
   }, []);
 
   const handleDownload = async (item: InvoiceForm | JsaForm | CapillaryForm) => {
-    if ("FinalProductFile" in item && item.FinalProductFile) {
+    console.log('handleDownload called with item:', item);
+
+    if (!item || !("FinalProductFile" in item) || !item.FinalProductFile) {
+      console.log('No valid FinalProductFile for item:', item);
+      alert("No file available for download");
+      return;
+    }
+
       try {
         let fileName: string;
-        if ("WorkTicketID" in item) {
+        if ("WorkTicketID" in item && item.WorkTicketID) {
           fileName = `${item.WorkTicketID}.pdf`;
         }else {
           fileName = "NewForm.pdf"; 
         }
+        console.log('Calling downloadFile with FinalProductFile:', item.FinalProductFile, 'fileName:', fileName);
         await downloadFile(item.FinalProductFile, fileName);
-      } catch (error) {
-        alert("Failed to download file");
+      } catch (error: any) {
+        console.error('handleDownload error:', error);
+        alert(`Failed to download file: ${error.message}`);
       }
-    } else {
-      alert("No file available for download");
-    }
+    
   };
 
   const handleDelete = async (item: InvoiceForm | JsaForm | CapillaryForm) => {
     if (!window.confirm('Are you sure you want to delete this form?')) return;
-
+  
     setIsLoading(true);
     try {
-      if ("WorkTicketID" in item && "InvoiceDate" in item) {
-        // InvoiceForm Delete
-        await client.graphql({
-          query: deleteInvoiceForm,
-          variables: { input: { WorkTicketID: item.WorkTicketID } },
-          authMode: "userPool",
-        });
-        await fetchInvoices();
-      } else if ("WorkTicketID" in item && "CustomerName" in item) {
-        // JsaForm Delete
-        await client.graphql({
-          query: deleteJsaForm,
-          variables: { input: { CustomerName: item.CustomerName } },
-          authMode: "userPool",
-        });
-        await fetchJsaForms();
-      } else if ("WorkTicketID" in item && "SubmissionDate" in item) {
-        // CapillaryForm Delete
-        await client.graphql({
-          query: deleteCapillaryForm,
-          variables: { input: { WorkTicketID: item.WorkTicketID } },
-          authMode: "userPool",
-        });
-        await fetchCapillary();
-      } else {
-        throw new Error("Unknown form type");
+      const maxRetries = 3;
+      let attempt = 0;
+      let lastError: any;
+  
+      while (attempt < maxRetries) {
+        try {
+          if ("WorkTicketID" in item && "InvoiceDate" in item) {
+            // InvoiceForm Delete
+            console.log('Deleting InvoiceForm:', { WorkTicketID: item.WorkTicketID, _version: item._version });
+            const response = await client.graphql({
+              query: deleteInvoiceForm,
+              variables: { input: { WorkTicketID: item.WorkTicketID, _version: item._version } },
+              authMode: "userPool",
+            });
+            console.log('DeleteInvoiceForm response:', response);
+  
+            if (item.FinalProductFile) {
+              const match = item.FinalProductFile.match(/^s3:\/\/([^/]+)\/(.+)$/);
+              if (match) {
+                const [, bucket, key] = match;
+                await s3Client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+                console.log(`Deleted S3 object: ${item.FinalProductFile}`);
+              }
+            }
+            await fetchInvoices();
+            return;
+          } else if ("WorkTicketID" in item && "CustomerName" in item) {
+            // JsaForm Delete
+            console.log('Deleting JsaForm:', { CustomerName: item.CustomerName, _version: item._version });
+            const response = await client.graphql({
+              query: deleteJsaForm,
+              variables: { input: { CustomerName: item.CustomerName, _version: item._version } },
+              authMode: "userPool",
+            });
+            console.log('DeleteJsaForm response:', response);
+  
+            if (item.FinalProductFile) {
+              const match = item.FinalProductFile.match(/^s3:\/\/([^/]+)\/(.+)$/);
+              if (match) {
+                const [, bucket, key] = match;
+                await s3Client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+                console.log(`Deleted S3 object: ${item.FinalProductFile}`);
+              }
+            }
+            await fetchJsaForms();
+            return;
+          } else if ("WorkTicketID" in item && "SubmissionDate" in item) {
+            // CapillaryForm Delete
+            console.log('Deleting CapillaryForm:', { WorkTicketID: item.WorkTicketID, _version: item._version });
+            const response = await client.graphql({
+              query: deleteCapillaryForm,
+              variables: { input: { WorkTicketID: item.WorkTicketID, _version: item._version } },
+              authMode: "userPool",
+            });
+            console.log('DeleteCapillaryForm response:', response);
+  
+            if (item.FinalProductFile) {
+              const match = item.FinalProductFile.match(/^s3:\/\/([^/]+)\/(.+)$/);
+              if (match) {
+                const [, bucket, key] = match;
+                await s3Client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+                console.log(`Deleted S3 object: ${item.FinalProductFile}`);
+              }
+            }
+            await fetchCapillary();
+            return;
+          } else {
+            throw new Error("Unknown form type");
+          }
+        } catch (err: any) {
+          lastError = err;
+          if (err.errors?.some((e: any) => e.errorType === 'ConflictUnhandled')) {
+            console.log(`Version conflict detected, retrying (${attempt + 1}/${maxRetries})...`);
+            attempt++;
+  
+            // Fetch the latest record
+            let latestResponse;
+            if ("WorkTicketID" in item && "InvoiceDate" in item) {
+              latestResponse = await client.graphql({
+                query: getInvoiceForm,
+                variables: { WorkTicketID: item.WorkTicketID },
+                authMode: "userPool",
+              });
+              if (latestResponse.data?.getInvoiceForm) {
+                item._version = latestResponse.data.getInvoiceForm._version;
+                console.log('Updated InvoiceForm _version:', item._version);
+              } else {
+                throw new Error('Failed to fetch latest InvoiceForm version');
+              }
+            } else if ("WorkTicketID" in item && "CustomerName" in item) {
+              latestResponse = await client.graphql({
+                query: getJsaForm,
+                variables: { CustomerName: item.CustomerName },
+                authMode: "userPool",
+              });
+              if (latestResponse.data?.getJsaForm) {
+                item._version = latestResponse.data.getJsaForm._version;
+                console.log('Updated JsaForm _version:', item._version);
+              } else {
+                throw new Error('Failed to fetch latest JsaForm version');
+              }
+            } else if ("WorkTicketID" in item && "SubmissionDate" in item) {
+              latestResponse = await client.graphql({
+                query: getCapillaryForm,
+                variables: { WorkTicketID: item.WorkTicketID },
+                authMode: "userPool",
+              });
+              if (latestResponse.data?.getCapillaryForm) {
+                item._version = latestResponse.data.getCapillaryForm._version;
+                console.log('Updated CapillaryForm _version:', item._version);
+              } else {
+                throw new Error('Failed to fetch latest CapillaryForm version');
+              }
+            }
+          } else {
+            throw err;
+          }
+        }
       }
-    } catch (err) {
+  
+      throw new Error(`Failed to delete form after ${maxRetries} retries: ${lastError.message}`);
+    } catch (err: any) {
       console.error('Error deleting form:', err);
-      setError('Failed to delete form. Please try again later.');
+      setError(`Failed to delete form: ${err.message || 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
