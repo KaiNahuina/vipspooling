@@ -70,13 +70,19 @@ const Templates = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('templates');
-
+  const [userGroup, setUserGroup] = useState<string | null>(null);
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
   const checkAuth = async () => {
     try {
       await getCurrentUser();
+      const session = await fetchAuthSession();
+      if (!session.credentials) throw new Error('No credentials available');
+      const groups = session.tokens?.accessToken.payload['cognito:groups'] as string[] | undefined;
+      const group = groups?.find(g => ['Admin', 'Manager', 'Operator'].includes(g)) || null;
+      console.log('User group:', group);
+      setUserGroup(group);
       return true;
     } catch (err) {
       console.error('No signed in user:', err);
@@ -163,6 +169,7 @@ const Templates = () => {
 
   useEffect(() => {
     if (isAuthenticated === true) {
+
       fetchData();
     } else if (isAuthenticated === false) {
       router.push('/Login');
@@ -217,14 +224,16 @@ const Templates = () => {
               <h2 className="text-2xl font-semibold text-black dark:text-white">
                 {activeTab === 'templates' ? 'Templates' : 'Pricing Plans'}
               </h2>
-              <button
-                onClick={() => router.push("/Templates/template-request")}
-                className="px-6 bg-gold-200 hover:bg-gold-100 text-gray-800 transition ease-in 
-                duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 
-                focus:ring-offset-2 rounded-lg cursor-pointer select-none h-[56px]"
-              >
-                Request New Form or Pricing Plan
-              </button>
+              {userGroup !== 'Operator' && (
+                <button
+                  onClick={() => router.push("/Templates/template-request")}
+                  className="px-6 bg-gold-200 hover:bg-gold-100 text-gray-800 transition ease-in 
+                  duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 
+                  focus:ring-offset-2 rounded-lg cursor-pointer select-none h-[56px]"
+                >
+                  Request New Form or Pricing Plan
+                </button>
+              )}
             </div>
             <div className="w-full max-w-3xl bg-white rounded-lg p-4 shadow-md items-center justify-center mt-4 mx-auto">
               <Previewer src={selectedFileUrl || Logo} />

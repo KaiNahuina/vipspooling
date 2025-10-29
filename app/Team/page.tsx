@@ -2,6 +2,7 @@
 import Table from '@/components/Table';
 import React, { useEffect, useState, useCallback } from 'react';
 import Search from '@/components/Search';
+import Modal from '@/components/Modal';
 import { useRouter } from 'next/navigation';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import {
@@ -15,7 +16,6 @@ import {
 interface CognitoUser {
   username: string;
   email: string;
-  status: string;
   enabled: string;
   groups: string[];
   userAttributes: { name: string; value: string }[];
@@ -23,9 +23,8 @@ interface CognitoUser {
 
 const columns = [
   { key: 'email', header: 'Email' },
-  { key: 'status', header: 'Status' },
   { key: 'enabled', header: 'Enabled' },
-  { key: 'groups', header: 'Access' },
+  { key: 'groups', header: 'Group' },
 ];
 
 const Team = () => {
@@ -35,15 +34,20 @@ const Team = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [groups, setGroups] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>(''); // New state for search
-
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [userGroup, setUserGroup] = useState<string | null>(null);
   const client = new CognitoIdentityProviderClient({ region: 'us-east-1' });
-  const userPoolId = 'us-east-1_Sk6JKaM2w'; // Your User Pool ID
+  const userPoolId = 'us-east-1_Sk6JKaM2w'; 
 
   const checkAuth = async () => {
     try {
       const user = await getCurrentUser();
       const session = await fetchAuthSession();
+      if (!session.credentials) throw new Error('No credentials available');
+      const groups = session.tokens?.accessToken.payload['cognito:groups'] as string[] | undefined;
+      const group = groups?.find(g => ['Admin', 'Manager', 'Operator'].includes(g)) || null;
+      console.log('User group:', group);
+      setUserGroup(group);
       if (!session.credentials) {
         throw new Error('No credentials available');
       }
@@ -127,7 +131,6 @@ const Team = () => {
             return {
               username: user.Username || '',
               email: user.Attributes?.find((attr) => attr.Name === 'email')?.Value || '',
-              status: user.UserStatus || '',
               enabled: user.Enabled ? 'Yes' : 'No',
               groups: userGroups,
               userAttributes: (user.Attributes || []).map((attr) => ({
@@ -160,10 +163,6 @@ const Team = () => {
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
-
-  const handleEdit = async (user: CognitoUser) => {
-    console.log('Edit user:', user);
-  };
 
   const handleDelete = async (user: CognitoUser) => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
@@ -212,7 +211,7 @@ const Team = () => {
     if (!searchQuery) return users;
     const query = searchQuery.toLowerCase();
     return users.filter((user) =>
-      [user.email, user.username, user.status, user.enabled, ...user.groups].some(
+      [user.email, user.username, user.enabled, ...user.groups].some(
         (value) => value.toLowerCase().includes(query)
       )
     );
@@ -233,13 +232,15 @@ const Team = () => {
             <div className="flex flex-row justify-between items-center">
               <h2 className="text-2xl font-semibold text-black dark:text-white">Team Info</h2>
               <div className="flex items-center gap-4 w-full max-w-md">
-                <Search onSearch={setSearchQuery} /> {/* Pass onSearch prop */}
-                <button
-                  onClick={() => router.push('/Team/add-member')}
-                  className="px-6 bg-gold-200 hover:bg-gold-100 text-gray-800 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none h-[56px]"
-                >
-                  +
-                </button>
+                <Search onSearch={setSearchQuery} /> 
+                {userGroup !== 'Operator' && (
+                  <button
+                    onClick={() => router.push('/Team/add-member')}
+                    className="px-6 bg-gold-200 hover:bg-gold-100 text-gray-800 transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg cursor-pointer select-none h-[56px]"
+                  >
+                    +
+                  </button>
+                )}
               </div>
             </div>
             <div className="flex space-x-4 border-b border-gray-300">
@@ -280,8 +281,9 @@ const Team = () => {
             columns={columns}
             data={tabFilteredUsers} // Use filtered data with tab logic
             isLoading={isLoading}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={userGroup === 'Operator' ? undefined : handleDelete}
+            userGroup={userGroup}
+            showActions={userGroup !== 'Operator'}
           />
         </div>
       </div>

@@ -19,6 +19,7 @@ interface TableProps {
   isLoading?: boolean;
   showActions?: boolean;
   showCheckboxes?: boolean;
+  userGroup?: string | null;
 }
 
 // Function to get AWS credentials (reused from your previous code)
@@ -49,6 +50,7 @@ const Table: React.FC<TableProps> = ({
   isLoading = false,
   showActions = true,
   showCheckboxes = true,
+  userGroup,
 }) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
@@ -72,7 +74,7 @@ const Table: React.FC<TableProps> = ({
       setSelectedRows([]);
     } else {
       const ids = data?.length > 0
-        ? data.map((row) => row.id || row.WorkTicketID || row.CustomerName || row.TemplateID || row.UserID).filter(Boolean)
+        ? data.map((row) => row.id || row.WorkTicketID || row.CustomerName || row.TemplateID || row.UserID || row.username).filter(Boolean)
         : [];
       setSelectedRows(ids);
     }
@@ -181,6 +183,8 @@ const Table: React.FC<TableProps> = ({
                       >
                         Preview
                       </button>
+                    ) : column.key === 'groups' && Array.isArray(row[column.key]) ? (
+                      row[column.key].join(', ')
                     ) : (
                       row[column.key]?.toString() || ''
                     )}
@@ -242,7 +246,7 @@ const Table: React.FC<TableProps> = ({
                 Download
               </button>
             )}
-            {onDelete && (
+            {onDelete &&(
               <button
                 onClick={() => {
                   onDelete(data.find((row) => getRowId(row) === openDropdownId));

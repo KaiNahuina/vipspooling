@@ -45,7 +45,8 @@
         "AdminQueriese168a1e6": {
           "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
           "s3Key": "amplify-builds/AdminQueriese168a1e6-39754d73626a65395744-build.zip"
-        }
+        },
+        "vipinvoicesff20c633": {}
       },
       "api": {
         "AdminQueries": {},

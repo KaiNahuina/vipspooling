@@ -1,11 +1,13 @@
 "use client";
 import Search from '@/components/Search';
 import Table from '@/components/Table';
+import Modal from '@/components/Modal';
+import ErrorModal from '@/components/ErrorModal';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { generateClient } from 'aws-amplify/api';
 import { listInvoiceForms, listJsaForms, listCapillaryForms } from '@/src/graphql/queries';
-import { deleteInvoiceForm, deleteJsaForm, deleteCapillaryForm} from '@/src/graphql/mutations';
+import { deleteInvoiceForm, deleteJsaForm, deleteCapillaryForm } from '@/src/graphql/mutations';
 import { getCapillaryForm, getInvoiceForm, getJsaForm } from '@/src/graphql/queries';
 import { getCurrentUser } from 'aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
@@ -13,7 +15,7 @@ import awsconfig from '@/src/aws-exports';
 import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { AwsCredentialIdentity } from "@aws-sdk/types";
-import { fetchAuthSession } from "aws-amplify/auth";
+import { fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth";
 
 Amplify.configure(awsconfig);
 
@@ -32,7 +34,7 @@ const getCredentials = async (): Promise<AwsCredentialIdentity> => {
 // Initialize S3 client
 const s3Client = new S3Client({
   region: "us-east-1",
-  credentials: getCredentials,
+  credentials: async () => getCredentials(),
 });
 
 interface InvoiceForm {
@@ -67,8 +69,7 @@ interface JsaForm {
   _version: number;
 }
 
-
-interface CapillaryForm{
+interface CapillaryForm {
   WorkTicketID: string;
   Date: string;
   TechnicianName: string;
@@ -81,7 +82,6 @@ interface CapillaryForm{
 const downloadFile = async (s3Url: string, fileName: string) => {
   console.log('Starting downloadFile with s3Url:', s3Url, 'fileName:', fileName);
   try {
-    
     if (!s3Url.startsWith('s3://')) {
       throw new Error(`Invalid S3 URL format: ${s3Url}`);
     }
@@ -102,7 +102,6 @@ const downloadFile = async (s3Url: string, fileName: string) => {
     const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
     console.log('Pre-signed URL generated:', url);
 
-    // Fetch the file and trigger download
     console.log('Fetching file from pre-signed URL...');
     const response = await fetch(url);
     if (!response.ok) {
@@ -134,14 +133,14 @@ const invoiceColumns = [
   { key: 'CableCompanyLocation', header: 'Location' },
   { key: 'OilCompany', header: 'Oil Company' },
   { key: 'WellNumber', header: 'Well Number' },
-  { key: 'WellName', header: "Well Name"},
+  { key: 'WellName', header: "Well Name" },
   { key: 'ReelNumber', header: 'Reel Number' },
 ];
 
 const jsaColumns = [
   { key: 'WorkTicketID', header: 'Work Ticket ID' },
   { key: 'CustomerName', header: 'Customer Name' },
-  { key: 'CreatedBy', header: 'Created By'},
+  { key: 'CreatedBy', header: 'Created By' },
   { key: 'FormDate', header: 'Form Date' },
   { key: 'EffectiveDate', header: 'Effective Date' },
   { key: 'Location', header: 'Location' },
@@ -149,7 +148,7 @@ const jsaColumns = [
 
 const CapillaryColumns = [
   { key: 'WorkTicketID', header: 'Work Ticket ID' },
-  { key: 'Date', header: 'Date'},
+  { key: 'Date', header: 'Date' },
   { key: 'TechnicianName', header: 'Technician Name' },
   { key: 'Customer', header: 'Customer' },
   { key: 'WellName', header: 'Well Name' },
@@ -163,31 +162,54 @@ const Dashboard = () => {
   const [capillaryForms, setCapillaryForms] = useState<CapillaryForm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>(''); 
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [userGroup, setUserGroup] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<InvoiceForm | JsaForm | CapillaryForm | null>(null);
 
-  const checkAuth = async () => {
+  const checkAuth = async (): Promise<{ name: string; isAuthenticated: boolean; group: string | null }> => {
     try {
-      await getCurrentUser();
-      return true;
+      const user = await getCurrentUser();
+      const session = await fetchAuthSession();
+      if (!session.credentials) throw new Error("No credentials available");
+      const groups = session.tokens?.accessToken.payload['cognito:groups'] as string[] | undefined;
+      const group = groups?.find(g => ['Admin', 'Manager', 'Operator'].includes(g)) || null;
+      const attributes = await fetchUserAttributes();
+      const name = attributes.name || `${attributes.given_name || ''} ${attributes.family_name || ''}`.trim() || '';
+      setUserGroup(group);
+      setUserName(name);
+      return { name, group, isAuthenticated: true };
     } catch (err) {
       console.error('No signed in user:', err);
       router.push('/Login');
-      return false;
+      return { name: '', isAuthenticated: false, group: null };
     }
   };
 
-  const fetchJsaForms = async () => {
+  const fetchJsaForms = async (userName: string, userGroup: string | null) => {
     try {
-      const isAuthenticated = await checkAuth();
-      if (!isAuthenticated) return;
+      const filter = {
+        and: [
+          userGroup === 'Operator' && userName ? { CreatedBy: { eq: userName } } : {},
+          { _deleted: { ne: true } },
+        ].filter(f => Object.keys(f).length > 0),
+      };
+
+      console.log('fetchJsaForms - Filter:', filter, 'userName:', userName, 'userGroup:', userGroup);
 
       const response = await client.graphql({
         query: listJsaForms,
+        variables: { filter },
         authMode: 'userPool',
       });
 
+      console.log('fetchJsaForms - Response:', JSON.stringify(response, null, 2));
       if (response.data) {
         setJsaForms(response.data.listJsaForms.items);
+      } else if (response.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
       }
     } catch (err) {
       console.error('Error fetching JSA forms:', err);
@@ -195,18 +217,26 @@ const Dashboard = () => {
     }
   };
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = async (userName: string, userGroup: string | null) => {
     try {
-      const isAuthenticated = await checkAuth();
-      if (!isAuthenticated) return;
-
+      const filter = {
+        and: [
+          userGroup === 'Operator' && userName ? { Spooler: { eq: userName } } : {},
+          { _deleted: { ne: true } },
+        ].filter(f => Object.keys(f).length > 0),
+      };
+      console.log('fetchInvoices - Filter:', filter, 'userName:', userName, 'userGroup:', userGroup);
       const response = await client.graphql({
         query: listInvoiceForms,
+        variables: { filter },
         authMode: 'userPool',
       });
 
+      console.log('fetchInvoices - Response:', JSON.stringify(response, null, 2));
       if (response.data) {
         setInvoices(response.data.listInvoiceForms.items);
+      } else if (response.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
       }
     } catch (err) {
       console.error('Error fetching invoices:', err);
@@ -214,33 +244,49 @@ const Dashboard = () => {
     }
   };
 
-  const fetchCapillary = async () => {
-    try{
-      const isAuthenticated = await checkAuth();
-      if(!isAuthenticated) return;
+  const fetchCapillary = async (userName: string, userGroup: string | null) => {
+    try {
+      const filter = {
+        and: [
+          userGroup === 'Operator' && userName ? { TechnicianName: { eq: userName } } : {},
+          { _deleted: { ne: true } },
+        ].filter(f => Object.keys(f).length > 0),
+      };
+      console.log('fetchCapillary - Filter:', filter);
 
       const response = await client.graphql({
         query: listCapillaryForms,
-        authMode: 'userPool'
+        variables: { filter },
+        authMode: 'userPool',
       });
 
-      if(response.data){
+      console.log('fetchCapillary - Response:', JSON.stringify(response, null, 2));
+      if (response.data) {
         setCapillaryForms(response.data.listCapillaryForms.items);
+      } else if (response.errors) {
+        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
       }
-    }catch(err){
+    } catch (err) {
       console.error('Error fetching capillary forms:', err);
       setError('Failed to fetch capillary forms. Please try again later.');
     }
-  }
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      await Promise.all([fetchJsaForms(), fetchInvoices(), fetchCapillary()]);
+      const { name, isAuthenticated, group } = await checkAuth();
+      if (!isAuthenticated) {
+        console.log('fetchData - Not authenticated, redirecting');
+        return;
+      }
+      console.log('fetchData - After checkAuth - userName:', name, 'userGroup:', group);
+
+      await Promise.all([fetchJsaForms(name, group), fetchInvoices(name, group), fetchCapillary(name, group)]);
     } catch (err) {
       console.error('Error fetching data:', err);
-      setError('Failed to fetch data. Please try again later.');
+      setError("Failed to fetch data. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -259,35 +305,42 @@ const Dashboard = () => {
       return;
     }
 
-      try {
-        let fileName: string;
-        if ("WorkTicketID" in item && item.WorkTicketID) {
-          fileName = `${item.WorkTicketID}.pdf`;
-        }else {
-          fileName = "NewForm.pdf"; 
-        }
-        console.log('Calling downloadFile with FinalProductFile:', item.FinalProductFile, 'fileName:', fileName);
-        await downloadFile(item.FinalProductFile, fileName);
-      } catch (error: any) {
-        console.error('handleDownload error:', error);
-        alert(`Failed to download file: ${error.message}`);
+    try {
+      let fileName: string;
+      if ("WorkTicketID" in item && item.WorkTicketID) {
+        fileName = `${item.WorkTicketID}.pdf`;
+      } else {
+        fileName = "NewForm.pdf";
       }
-    
+      console.log('Calling downloadFile with FinalProductFile:', item.FinalProductFile, 'fileName:', fileName);
+      await downloadFile(item.FinalProductFile, fileName);
+    } catch (error: any) {
+      console.error('handleDownload error:', error);
+      alert(`Failed to download file: ${error.message}`);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    setIsLoading(true);
+    setIsModalOpen(true);
+    handleDelete(itemToDelete);
   };
 
   const handleDelete = async (item: InvoiceForm | JsaForm | CapillaryForm) => {
-    if (!window.confirm('Are you sure you want to delete this form?')) return;
-  
-    setIsLoading(true);
+    if (!itemToDelete) return;
+
+    setItemToDelete(item);
+    setIsModalOpen(false);
     try {
       const maxRetries = 3;
       let attempt = 0;
       let lastError: any;
-  
+
       while (attempt < maxRetries) {
         try {
           if ("WorkTicketID" in item && "InvoiceDate" in item) {
-            // InvoiceForm Delete
             console.log('Deleting InvoiceForm:', { WorkTicketID: item.WorkTicketID, _version: item._version });
             const response = await client.graphql({
               query: deleteInvoiceForm,
@@ -295,7 +348,7 @@ const Dashboard = () => {
               authMode: "userPool",
             });
             console.log('DeleteInvoiceForm response:', response);
-  
+
             if (item.FinalProductFile) {
               const match = item.FinalProductFile.match(/^s3:\/\/([^/]+)\/(.+)$/);
               if (match) {
@@ -304,10 +357,9 @@ const Dashboard = () => {
                 console.log(`Deleted S3 object: ${item.FinalProductFile}`);
               }
             }
-            await fetchInvoices();
+            await fetchInvoices(userName, userGroup);
             return;
           } else if ("WorkTicketID" in item && "CustomerName" in item) {
-            // JsaForm Delete
             console.log('Deleting JsaForm:', { CustomerName: item.CustomerName, _version: item._version });
             const response = await client.graphql({
               query: deleteJsaForm,
@@ -315,7 +367,7 @@ const Dashboard = () => {
               authMode: "userPool",
             });
             console.log('DeleteJsaForm response:', response);
-  
+
             if (item.FinalProductFile) {
               const match = item.FinalProductFile.match(/^s3:\/\/([^/]+)\/(.+)$/);
               if (match) {
@@ -324,10 +376,9 @@ const Dashboard = () => {
                 console.log(`Deleted S3 object: ${item.FinalProductFile}`);
               }
             }
-            await fetchJsaForms();
+            await fetchJsaForms(userName, userGroup);
             return;
           } else if ("WorkTicketID" in item && "SubmissionDate" in item) {
-            // CapillaryForm Delete
             console.log('Deleting CapillaryForm:', { WorkTicketID: item.WorkTicketID, _version: item._version });
             const response = await client.graphql({
               query: deleteCapillaryForm,
@@ -335,7 +386,7 @@ const Dashboard = () => {
               authMode: "userPool",
             });
             console.log('DeleteCapillaryForm response:', response);
-  
+
             if (item.FinalProductFile) {
               const match = item.FinalProductFile.match(/^s3:\/\/([^/]+)\/(.+)$/);
               if (match) {
@@ -344,7 +395,7 @@ const Dashboard = () => {
                 console.log(`Deleted S3 object: ${item.FinalProductFile}`);
               }
             }
-            await fetchCapillary();
+            await fetchCapillary(userName, userGroup);
             return;
           } else {
             throw new Error("Unknown form type");
@@ -354,8 +405,7 @@ const Dashboard = () => {
           if (err.errors?.some((e: any) => e.errorType === 'ConflictUnhandled')) {
             console.log(`Version conflict detected, retrying (${attempt + 1}/${maxRetries})...`);
             attempt++;
-  
-            // Fetch the latest record
+
             let latestResponse;
             if ("WorkTicketID" in item && "InvoiceDate" in item) {
               latestResponse = await client.graphql({
@@ -399,7 +449,7 @@ const Dashboard = () => {
           }
         }
       }
-  
+
       throw new Error(`Failed to delete form after ${maxRetries} retries: ${lastError.message}`);
     } catch (err: any) {
       console.error('Error deleting form:', err);
@@ -423,6 +473,10 @@ const Dashboard = () => {
   const filteredJsaForms = filterData(jsaForms);
   const filteredCapillaryForms = filterData(capillaryForms);
 
+  const handleDismissError = () => {
+    setError(null);
+  };
+
   if (isLoading) {
     return (
       <div className="w-full flex justify-center items-center py-8">
@@ -431,14 +485,6 @@ const Dashboard = () => {
           <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.3s]"></div>
           <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.5s]"></div>
         </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-        {error}
       </div>
     );
   }
@@ -504,14 +550,14 @@ const Dashboard = () => {
             <li className="me-2" role="presentation">
               <button
                 className={`inline-block p-4 border-b-2 rounded-t-lg ${
-                  activeTab === "capillary"
-                    ? "text-gold-100 border-gold-200 dark:text-gold-100 dark:border-gold-200"
-                    : "text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                  activeTab === 'capillary'
+                    ? 'text-gold-100 border-gold-200 dark:text-gold-100 dark:border-gold-200'
+                    : 'text-gray-500 border-transparent hover:text-gray-600 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                 }`}
-                onClick={() => setActiveTab("capillary")}
+                onClick={() => setActiveTab('capillary')}
                 role="tab"
                 aria-controls="capillary-tab"
-                aria-selected={activeTab === "capillary"}
+                aria-selected={activeTab === 'capillary'}
               >
                 Capillary Forms
               </button>
@@ -521,27 +567,47 @@ const Dashboard = () => {
 
         <div className="flex-1 overflow-auto px-6 py-4">
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-              {error}
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 flex justify-between items-center">
+              <span>{error}</span>
+              <button
+                onClick={handleDismissError}
+                className="text-red-700 hover:text-red-900 font-semibold focus:outline-none"
+              >
+                Dismiss
+              </button>
             </div>
           )}
           <Table
-            columns={activeTab === "invoice"
+            columns={activeTab === 'invoice'
               ? invoiceColumns
-              : activeTab === "jsa"
+              : activeTab === 'jsa'
               ? jsaColumns
               : CapillaryColumns}
-            data={activeTab === "invoice"
+            data={activeTab === 'invoice'
               ? filteredInvoices
-              : activeTab === "jsa"
+              : activeTab === 'jsa'
               ? filteredJsaForms
               : filteredCapillaryForms}
             isLoading={isLoading}
             onDownload={handleDownload}
-            onDelete={handleDelete}
+            onDelete={userGroup === 'Operator' ? undefined : confirmDelete}
+            userGroup={userGroup}
           />
         </div>
       </div>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setItemToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Confirm Deletion"
+        message="Are you sure you want to delete this form?"
+        confirmText="Yes"
+        cancelText="No"
+        isLoading={isLoading}
+      />
     </div>
   );
 };

@@ -56,7 +56,7 @@ const Navbar = () => {
       <nav className="bg-white w-full h-full border-gray-100 dark:bg-gray-100">
         <div className="flex items-center justify-between p-4">
           {/* Logo */}
-          <Link href="/Dashboard" className="flex items-center space-x-3 rtl:space-x-reverse">
+          <Link href="/Landing" className="flex items-center space-x-3 rtl:space-x-reverse">
             <Image
               src={CompanyLogo}
               className="h-10 w-10 object-contain"

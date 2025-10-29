@@ -18,8 +18,8 @@ const LoginForm = () => {
     async function checkAuth() {
       try {
         await getCurrentUser();
-        console.log("User already authenticated, redirecting to Dashboard");
-        router.push("/Dashboard");
+        console.log("User already authenticated, redirecting to Main Page");
+        router.push("/Landing");
       } catch (err) {
         console.log("No authenticated user found");
       }
@@ -48,12 +48,12 @@ const LoginForm = () => {
       }
       else {
         console.log("Login successful", user);
-        router.push("/Dashboard");
+        router.push("/Landing");
       }
     } catch (err: any) {
       if (err.name === "UserAlreadyAuthenticatedException") {
-        console.log("User already authenticated, redirecting to Dashboard");
-        router.push("/Dashboard");
+        console.log("User already authenticated, redirecting to Main Page");
+        router.push("/Landing");
       } else {
         setError(err.message || "Invalid username or password.");
         console.error("Login error:", err);
@@ -68,7 +68,7 @@ const LoginForm = () => {
       if (newPassword) {
         await confirmSignIn({ challengeResponse: newPassword });
         console.log("Password confirmed successfully!");
-        router.push("/Dashboard");
+        router.push("/Landing");
       }
     } catch (err: any) {
       setError(err.message || "Error confirming the new password.");
@@ -142,23 +142,6 @@ const LoginForm = () => {
               />
             </div>
           )}
-
-          {/*Keep me logged in section*/}
-          <div className="flex items-center mb-4">
-            <input 
-              id="keep-logged-in" 
-              type="checkbox" 
-              checked={keepSignedIn}
-              onChange={(e) => setKeepSignedIn(e.target.checked)} // Ensure it's a boolean
-              className="h-4 w-4 text-gold-200 border-gray-300 rounded focus:ring-gold-100" 
-            />
-            <label 
-              htmlFor="keep-logged-in" 
-              className="ml-2 text-sm font-medium text-gray-300 select-none"
-            >
-              Keep me logged in
-            </label>
-          </div>
 
           {/* Login Button */}
             <div>

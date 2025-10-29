@@ -245,7 +245,16 @@ const fillAndUploadPDF = async (formData: CapFormData, date: Dayjs | null) => {
 
   if(formData.images && formData.images.length > 0){
     const imagePage = pdfDoc.addPage([595, 842]);
-    let currentY = 742;
+
+    imagePage.drawText('Uploaded Images', {
+        x: 68,
+        y: 810,
+        size: 20,
+        font: helveticaFont,
+        color: textColor,
+      });
+
+    let currentY = 750;
     const imageWidth = 200;
     const imageHeight = 150;
     const margin = 50;
@@ -284,7 +293,14 @@ const fillAndUploadPDF = async (formData: CapFormData, date: Dayjs | null) => {
 
         if(currentY < 50) {
           const newPage = pdfDoc.addPage([595, 842]);
-          currentY = 742;
+          newPage.drawText('Uploaded Images', {
+            x: 68,
+            y: 650,
+            size: fontSize,
+            font: helveticaFont,
+            color: textColor,
+          });
+          currentY = 610;
           page = newPage;
         }
 

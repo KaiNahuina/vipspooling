@@ -71,6 +71,7 @@ interface JsaFormData {
   workTicketID: string;
   customerName: string;
   createdBy: string;
+  createdByName: string;
   effectiveDate: string;
   location: string;
   notes: note[];
@@ -251,6 +252,7 @@ const NewForm = () => {
         workTicketID: "",
         customerName: "",  
         createdBy:"",
+        createdByName:"",
         effectiveDate: "",  
         location: "",
         notes:[
@@ -321,7 +323,7 @@ const NewForm = () => {
             }
     
             if (response.StatusCode === 200 && bodyPayload.workTicketID) {
-              setFormData((prev) => ({ ...prev, workTicketNo: bodyPayload.workTicketID }));
+              setFormData((prev) => ({ ...prev, workTicketID: bodyPayload.workTicketID }));
             } else if (bodyPayload.error) {
               throw new Error(`${bodyPayload.error}: ${bodyPayload.details || "No details provided"}`);
             } else {
@@ -545,6 +547,7 @@ const NewForm = () => {
                     workTicketID: "",
                     customerName: "",
                     createdBy:"",
+                    createdByName:"",
                     effectiveDate: "",
                     location: "",
                     notes:[

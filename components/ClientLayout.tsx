@@ -138,7 +138,7 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isAuthenticated && pathname === "/Login") {
-      router.push("/Dashboard");
+      router.push("/Landing");
     }
   }, [isAuthenticated, pathname, router]);
 

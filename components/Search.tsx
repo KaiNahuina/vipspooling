@@ -22,7 +22,7 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
         type="text"
         value={query}
         onChange={handleInputChange}
-        placeholder="Search forms..."
+        placeholder="Search"
         className="flex-grow bg-transparent border-none outline-none px-3 py-2 text-gray-800"
       />
     </div>
