@@ -102,14 +102,14 @@ const Landing = () => {
       </section>
 
       {/* Contact Form Section */}
-      <section id="contact" className="py-16 px-4">
+      <section id="contact" className="py-16 px-4 bg-gray-50 rounded-lg shadow-md">
         <div className="w-full max-w-4xl mx-auto">
          
           <div className="w-full flex flex-col justify-center items-center bg-transparent dark:bg-gray-100 px-4 py-10 mx-auto rounded-[5px]">
             <div className="flex justify-center items-center flex-col mb-10">
               <h2 className="text-2xl font-bold mb-6">Contact Us</h2>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 w-[75%]">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium mb-2">
                   Name

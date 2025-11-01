@@ -60,11 +60,6 @@ interface JsaForm {
   FormDate: string;
   EffectiveDate: string;
   Location: string;
-  Personnel: Array<{
-    Role: string;
-    PersonName: string;
-    Signature: string;
-  } | null>;
   FinalProductFile?: string | null;
   _version: number;
 }

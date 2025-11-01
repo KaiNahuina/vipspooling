@@ -13,9 +13,6 @@
       "AuthTriggerTemplateURL": "https://s3.amazonaws.com/amplify-vipinvoices-dev-d981e-deployment/amplify-cfn-templates/auth/auth-trigger-cloudformation-template.json"
     },
     "categories": {
-      "auth": {
-        "vipinvoicesff20c633": {}
-      },
       "function": {
         "vipinvoicesff20c633DefineAuthChallenge": {
           "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
@@ -54,6 +51,10 @@
       },
       "storage": {
         "templateBucket": {}
+      },
+      "auth": {
+        "vipinvoices7836895e": {},
+        "vipinvoicesff20c633": {}
       }
     }
   }

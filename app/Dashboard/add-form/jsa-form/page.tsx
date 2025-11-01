@@ -528,7 +528,9 @@ const NewForm = () => {
                     PersonName: sanitizeInput(person.name),
                     Signature: person.signature
                 } as PersonInput)),
-                FinalProductFile: s3Url
+                FinalProductFile: s3Url,
+                _version: 1,
+                _lastChangedAt: new Date().toISOString(),
             };
 
             console.log('Submitting JSA form data:', jsaData);

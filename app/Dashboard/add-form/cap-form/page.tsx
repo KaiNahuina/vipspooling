@@ -5,8 +5,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import { generateClient } from 'aws-amplify/api';
-import { createCapillaryForm, updateCapillaryForm } from '@/src/graphql/mutations';
-import { CreateCapillaryFormInput, UpdateCapillaryFormInput } from '@/src/graphql/API';
 import { useRouter } from 'next/navigation';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { getTemplate } from '@/utils/template';
@@ -16,6 +14,8 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import DOMPurify from 'dompurify';
 import heic2any from 'heic2any';
+import { DynamoDBClient, PutItemCommand, UpdateItemCommand} from '@aws-sdk/client-dynamodb';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 
 const client = generateClient();
 
@@ -35,6 +35,11 @@ const s3Client = new S3Client({
 });
 
 const lambdaClient = new LambdaClient({
+  region: 'us-east-1',
+  credentials: getCredentials,
+});
+
+const ddbClient = new DynamoDBClient({
   region: 'us-east-1',
   credentials: getCredentials,
 });
@@ -527,8 +532,9 @@ const CapillaryForm = () => {
         return;
       }
       
+      const nowISO = new Date().toISOString();
 
-      const reportData: CreateCapillaryFormInput = {
+      const reportData = {
         WorkTicketID: formData.WorkTicketID,
         Date: formData.Date,
         TechnicianName: sanitizeInput(formData.TechnicianName),
@@ -549,101 +555,75 @@ const CapillaryForm = () => {
         TotalGallons: formData.TotalGallons,
         Notes: sanitizeInput(formData.Notes),
         FinalProductFile: "",
+        _version: 1,
+        createdAt: nowISO,
+        updatedAt: nowISO,
+        _lastChangedAt: nowISO,
       };
 
       
 
       console.log('Submitting Capillary Report data:', reportData);
 
-      const response = await client.graphql({
-        query: createCapillaryForm,
-        variables: { input: reportData },
+      await ddbClient.send(
+        new PutItemCommand({
+          TableName: 'CapillaryForm-ghr672m57fd2re7tckfmfby2e4-dev',
+          Item: marshall(reportData),
+          ConditionExpression: 'attribute_not_exists(WorkTicketID)',
+        })
+      );
+
+      console.log('DynamoDB Response:', Response);
+
+    
+
+      
+      const submissionDate = dayjs(nowISO).format('YYYY-MM-DD');
+      const pdfFormData = {...formData, SubmissionDate: submissionDate};
+      const s3Url = await fillAndUploadPDF(pdfFormData, date);
+
+      const updatePayload = {
+        ':url': s3Url,
+        ':sub': submissionDate,
+        ':upd': nowISO,
+      }
+
+      await ddbClient.send(
+        new UpdateItemCommand({
+          TableName: 'CapillaryForm-ghr672m57fd2re7tckfmfby2e4-dev',
+          Key: marshall({WorkTicketID: formData.WorkTicketID}),
+          UpdateExpression: 'SET FinalProductFile = :url, SubmissionDate = :sub, updatedAt = :upd',
+          ExpressionAttributeValues: marshall(updatePayload),
+        })
+      )
+
+      setFormData({
+        WorkTicketID: '',
+        SubmissionDate: '',
+        Date: '',
+        TechnicianName: '',
+        Customer: '',
+        WellName: '',
+        TypeOfJob: '',
+        VisualConfirmation: '',
+        IntervalPumping: '',
+        PressureWhilePumping: '',
+        PressureBleed: '',
+        CapillaryFlush: '',
+        ManifoldStatus: '',
+        LineTest: '',
+        CapillarySize: '',
+        Metallurgy: '',
+        Length: '',
+        FluidPumped: '',
+        TotalGallons: '',
+        Notes: '',
+        FinalProductFile: '',
+        images: [],
       });
+      setDate(null);
+      alert('Capillary Report submitted successfully!');
 
-      console.log('DynamoDB Response:', response);
-
-      if(response.errors){
-        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
-      }
-
-      if(!response.data?.createCapillaryForm){
-        throw new Error('CreateCapillaryForm returned null');
-      }
-
-      if (response.data.createCapillaryForm) {
-        
-        const createdAt = response.data.createCapillaryForm.createdAt;
-        const version = response.data.createCapillaryForm._version;
-        if (!createdAt || version == null) {
-          throw new Error('No createdAt or _version returned from DynamoDB');
-        }
-
-        let formattedDate: string | undefined;
-        try {
-          const parsedDate = dayjs(createdAt);
-          if (!parsedDate.isValid()) {
-            throw new Error('Invalid createdAt timestamp');
-          }
-          formattedDate = parsedDate.format('YYYY-MM-DD');
-        } catch (error) {
-          console.error('Error parsing createdAt:', error);
-          formattedDate = undefined;
-        }
-
-        console.log('Setting SubmissionDate:', formattedDate);
-
-        const updatedFormData = { ...formData, SubmissionDate: formattedDate || '' };
-
-        // Step 3: Generate and upload PDF with updated SubmissionDate
-        const s3Url = await fillAndUploadPDF(updatedFormData, date );
-        console.log('Final product uploaded to S3:', s3Url);
-
-        const updateData: UpdateCapillaryFormInput = {
-          WorkTicketID: formData.WorkTicketID,
-          SubmissionDate: formattedDate,
-          FinalProductFile: s3Url,
-          _version: version,
-        };
-
-        console.log('Updating CapillaryForm with data:', updateData);
-
-        const updateResponse = await client.graphql({
-          query: updateCapillaryForm,
-          variables: { input: updateData },
-        });
-
-        console.log('DynamoDB Update Response:', JSON.stringify(updateResponse, null, 2));
-        if (updateResponse.errors) {
-          throw new Error(`UpdateCapillaryForm failed: ${JSON.stringify(updateResponse.errors)}`);
-        }
-
-        setFormData({
-          WorkTicketID: '',
-          SubmissionDate: '',
-          Date: '',
-          TechnicianName: '',
-          Customer: '',
-          WellName: '',
-          TypeOfJob: '',
-          VisualConfirmation: '',
-          IntervalPumping: '',
-          PressureWhilePumping: '',
-          PressureBleed: '',
-          CapillaryFlush: '',
-          ManifoldStatus: '',
-          LineTest: '',
-          CapillarySize: '',
-          Metallurgy: '',
-          Length: '',
-          FluidPumped: '',
-          TotalGallons: '',
-          Notes: '',
-          FinalProductFile: '',
-          images: [],
-        });
-        setDate(null);
-        alert('Capillary Report submitted successfully!');
-      }
     } catch (error) {
       console.error('Error submitting Capillary Report:', error);
       alert('Error submitting Capillary Report. Please try again.');

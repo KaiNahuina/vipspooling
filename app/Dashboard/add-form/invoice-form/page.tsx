@@ -9,13 +9,14 @@ import { generateClient } from 'aws-amplify/api';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import type { AwsCredentialIdentity } from '@aws-sdk/types';
-import { createInvoiceForm } from '@/src/graphql/mutations';
-import { CreateInvoiceFormInput, LaborCostInput, ConsumableInput, CableDetailInput } from '@/src/graphql/API';
 import { useRouter } from 'next/navigation';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { getTemplate } from '@/utils/template';
 import DOMPurify from "dompurify";
+import {DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb';
+import { marshall } from '@aws-sdk/util-dynamodb';
+
 
 
 const client = generateClient();
@@ -39,6 +40,13 @@ const lambdaClient = new LambdaClient({
   region: "us-east-1",
   credentials: getCredentials,
 });
+
+
+const ddbClient = new DynamoDBClient({
+    region: 'us-east-1',
+    credentials: getCredentials,
+  });
+
 
 const sanitizeInput = (value: string): string => {
   return DOMPurify.sanitize(value, { USE_PROFILES: { html: true } });
@@ -540,7 +548,7 @@ const NewForm = () => {
       const jobTypes = Object.keys(jobTypeCheckboxes).filter(key => jobTypeCheckboxes[key as keyof JobTypeCheckboxes]);
 
       // Ensure LaborCosts has at least one valid entry
-      let laborCosts: LaborCostInput[] = formData.rates.map((rate: Rate) => ({
+      let laborCosts = formData.rates.map((rate: Rate) => ({
         rate: Number(rate.rate) || 0,
         qty: Number(rate.quantity) || 0,
         amount: rate.total,
@@ -550,7 +558,7 @@ const NewForm = () => {
       }
 
       // Ensure Consumables has at least one valid entry
-      let consumables: ConsumableInput[] = formData.consumables.map((consumable: Consumable) => ({
+      let consumables = formData.consumables.map((consumable: Consumable) => ({
         item: sanitizeInput(consumable.item) || "None",
         qty: Number(consumable.qty) || 0,
         rate: Number(consumable.rate) || 0,
@@ -565,7 +573,7 @@ const NewForm = () => {
         jobTypes.push("None");
       }
 
-      const invoiceData: CreateInvoiceFormInput = {
+      const invoiceData = {
         WorkTicketID: formData.workTicketNo,
         InvoiceDate: selectedDate?.format('YYYY-MM-DD') || new Date().toISOString().split('T')[0],
         Spooler: sanitizeInput(formData.spooler),
@@ -583,35 +591,31 @@ const NewForm = () => {
         InvoiceTotal: formData.rates.reduce((sum: number, rate: Rate) => sum + rate.total, 0) +
                       formData.consumables.reduce((sum: number, consumable: Consumable) => sum + consumable.amount, 0) +
                       Number(formData.extraCharges || 0),
-        LaborCosts: formData.rates.map((rate: Rate) => ({
-          rate: Number(rate.rate) || 0,
-          qty: Number(rate.quantity) || 0,
-          amount: rate.total
-        } as LaborCostInput)),
-        Consumables: formData.consumables.map((consumable: Consumable) => ({
-          item: sanitizeInput(consumable.item),
-          qty: Number(consumable.qty) || 0,
-          rate: Number(consumable.rate) || 0,
-          amount: consumable.amount
-        } as ConsumableInput)),
-        CableDetails: {
+        LaborCosts: laborCosts,
+        Consumables: consumables,
+        CableDetails:{
           CableType: sanitizeInput(formData.cableType) || "",
           CableLength: Number(formData.cableLength) || 0
-        } as CableDetailInput,
-        JobType: Object.keys(jobTypeCheckboxes).filter(key => jobTypeCheckboxes[key as keyof JobTypeCheckboxes])
+        },
+        JobType: jobTypes,
+        _version: 1,
+        _deleted: false,
+        _lastChangedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       console.log('Submitting form data:', invoiceData);
 
-      const response = await client.graphql({
-        query: createInvoiceForm,
-        variables: { input: invoiceData },
-        authMode: 'userPool',
-      });
+      const command = new PutItemCommand({
+        TableName: "InvoiceForm-ghr672m57fd2re7tckfmfby2e4-dev",
+        Item: marshall(invoiceData),
+      })
+      await ddbClient.send(command);
 
-      console.log('Response:', response);
+      console.log('Response:', Response);
 
-      if (response.data?.createInvoiceForm) {
+      
         setFormData({
           workTicketNo: "",
           date: "",
@@ -652,7 +656,7 @@ const NewForm = () => {
         });
 
         alert('Invoice form submitted successfully to: ' + s3Url);
-      }
+      
     } catch (error) {
       console.error('Error submitting invoice:', error);
       alert('Error submitting invoice. Please try again.');

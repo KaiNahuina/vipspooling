@@ -80,26 +80,8 @@ export const listInvoiceForms = /* GraphQL */ `query ListInvoiceForms(
       OilCompany
       WellName
       WellNumber
-      LaborCosts {
-        rate
-        qty
-        amount
-        __typename
-      }
       JobType
-      Consumables {
-        item
-        qty
-        rate
-        amount
-        __typename
-      }
       Notes
-      CableDetails {
-        CableType
-        CableLength
-        __typename
-      }
       ReelNumber
       ExtraCharges
       InvoiceTotal
@@ -143,26 +125,8 @@ export const syncInvoiceForms = /* GraphQL */ `query SyncInvoiceForms(
       OilCompany
       WellName
       WellNumber
-      LaborCosts {
-        rate
-        qty
-        amount
-        __typename
-      }
       JobType
-      Consumables {
-        item
-        qty
-        rate
-        amount
-        __typename
-      }
       Notes
-      CableDetails {
-        CableType
-        CableLength
-        __typename
-      }
       ReelNumber
       ExtraCharges
       InvoiceTotal
@@ -232,12 +196,6 @@ export const listJsaForms = /* GraphQL */ `query ListJsaForms(
       FormDate
       EffectiveDate
       Location
-      Personnel {
-        Role
-        PersonName
-        Signature
-        __typename
-      }
       FinalProductFile
       createdAt
       updatedAt
@@ -274,12 +232,6 @@ export const syncJsaForms = /* GraphQL */ `query SyncJsaForms(
       FormDate
       EffectiveDate
       Location
-      Personnel {
-        Role
-        PersonName
-        Signature
-        __typename
-      }
       FinalProductFile
       createdAt
       updatedAt

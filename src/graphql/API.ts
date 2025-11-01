@@ -151,7 +151,7 @@ export type InvoiceForm = {
   updatedAt: string,
   _version: number,
   _deleted?: boolean | null,
-  _lastChangedAt: number,
+  _lastChangedAt: string,
 };
 
 export type LaborCost = {
@@ -250,7 +250,7 @@ export type JsaForm = {
   updatedAt: string,
   _version: number,
   _deleted?: boolean | null,
-  _lastChangedAt: number,
+  _lastChangedAt: string,
 };
 
 export type Person = {
@@ -358,7 +358,7 @@ export type CapillaryForm = {
   updatedAt: string,
   _version: number,
   _deleted?: boolean | null,
-  _lastChangedAt: number,
+  _lastChangedAt: string,
 };
 
 export type UpdateCapillaryFormInput = {
@@ -424,7 +424,7 @@ export type Template = {
   updatedAt: string,
   _version: number,
   _deleted?: boolean | null,
-  _lastChangedAt: number,
+  _lastChangedAt: string,
 };
 
 export type UpdateTemplateInput = {
@@ -474,7 +474,7 @@ export type User = {
   updatedAt: string,
   _version: number,
   _deleted?: boolean | null,
-  _lastChangedAt: number,
+  _lastChangedAt: string,
 };
 
 export type UpdateUserInput = {
@@ -524,7 +524,7 @@ export type PricingPlan = {
   updatedAt: string,
   _version: number,
   _deleted?: boolean | null,
-  _lastChangedAt: number,
+  _lastChangedAt: string,
 };
 
 export type UpdatePricingPlanInput = {
@@ -923,7 +923,7 @@ export type CreateInvoiceFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -973,7 +973,7 @@ export type UpdateInvoiceFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1023,7 +1023,7 @@ export type DeleteInvoiceFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1052,7 +1052,7 @@ export type CreateJsaFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1081,7 +1081,7 @@ export type UpdateJsaFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1110,7 +1110,7 @@ export type DeleteJsaFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1147,7 +1147,7 @@ export type CreateCapillaryFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1184,7 +1184,7 @@ export type UpdateCapillaryFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1221,7 +1221,7 @@ export type DeleteCapillaryFormMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1242,7 +1242,7 @@ export type CreateTemplateMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1263,7 +1263,7 @@ export type UpdateTemplateMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1284,7 +1284,7 @@ export type DeleteTemplateMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1305,7 +1305,7 @@ export type CreateUserMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1326,7 +1326,7 @@ export type UpdateUserMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1347,7 +1347,7 @@ export type DeleteUserMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1368,7 +1368,7 @@ export type CreatePricingPlanMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1389,7 +1389,7 @@ export type UpdatePricingPlanMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1410,7 +1410,7 @@ export type DeletePricingPlanMutation = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1459,7 +1459,7 @@ export type GetInvoiceFormQuery = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1485,26 +1485,8 @@ export type ListInvoiceFormsQuery = {
       OilCompany: string,
       WellName: string,
       WellNumber: string,
-      LaborCosts:  Array< {
-        __typename: "LaborCost",
-        rate?: number | null,
-        qty?: number | null,
-        amount?: number | null,
-      } | null >,
       JobType: Array< string | null >,
-      Consumables:  Array< {
-        __typename: "Consumable",
-        item?: string | null,
-        qty?: number | null,
-        rate?: number | null,
-        amount?: number | null,
-      } | null >,
       Notes?: string | null,
-      CableDetails?:  {
-        __typename: "CableDetail",
-        CableType?: string | null,
-        CableLength?: number | null,
-      } | null,
       ReelNumber: string,
       ExtraCharges?: number | null,
       InvoiceTotal: number,
@@ -1514,7 +1496,7 @@ export type ListInvoiceFormsQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1542,26 +1524,8 @@ export type SyncInvoiceFormsQuery = {
       OilCompany: string,
       WellName: string,
       WellNumber: string,
-      LaborCosts:  Array< {
-        __typename: "LaborCost",
-        rate?: number | null,
-        qty?: number | null,
-        amount?: number | null,
-      } | null >,
       JobType: Array< string | null >,
-      Consumables:  Array< {
-        __typename: "Consumable",
-        item?: string | null,
-        qty?: number | null,
-        rate?: number | null,
-        amount?: number | null,
-      } | null >,
       Notes?: string | null,
-      CableDetails?:  {
-        __typename: "CableDetail",
-        CableType?: string | null,
-        CableLength?: number | null,
-      } | null,
       ReelNumber: string,
       ExtraCharges?: number | null,
       InvoiceTotal: number,
@@ -1571,7 +1535,7 @@ export type SyncInvoiceFormsQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1602,7 +1566,7 @@ export type GetJsaFormQuery = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1625,18 +1589,12 @@ export type ListJsaFormsQuery = {
       FormDate: string,
       EffectiveDate: string,
       Location: string,
-      Personnel:  Array< {
-        __typename: "Person",
-        Role: string,
-        PersonName: string,
-        Signature: string,
-      } | null >,
       FinalProductFile?: string | null,
       createdAt: string,
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1661,18 +1619,12 @@ export type SyncJsaFormsQuery = {
       FormDate: string,
       EffectiveDate: string,
       Location: string,
-      Personnel:  Array< {
-        __typename: "Person",
-        Role: string,
-        PersonName: string,
-        Signature: string,
-      } | null >,
       FinalProductFile?: string | null,
       createdAt: string,
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1711,7 +1663,7 @@ export type GetCapillaryFormQuery = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1753,7 +1705,7 @@ export type ListCapillaryFormsQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1797,7 +1749,7 @@ export type SyncCapillaryFormsQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1820,7 +1772,7 @@ export type GetTemplateQuery = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1846,7 +1798,7 @@ export type ListTemplatesQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1874,7 +1826,7 @@ export type SyncTemplatesQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1897,7 +1849,7 @@ export type GetUserQuery = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -1923,7 +1875,7 @@ export type ListUsersQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1951,7 +1903,7 @@ export type SyncUsersQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -1974,7 +1926,7 @@ export type GetPricingPlanQuery = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2000,7 +1952,7 @@ export type ListPricingPlansQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -2028,7 +1980,7 @@ export type SyncPricingPlansQuery = {
       updatedAt: string,
       _version: number,
       _deleted?: boolean | null,
-      _lastChangedAt: number,
+      _lastChangedAt: string,
     } | null >,
     nextToken?: string | null,
     startedAt?: number | null,
@@ -2080,7 +2032,7 @@ export type OnCreateInvoiceFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2129,7 +2081,7 @@ export type OnUpdateInvoiceFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2178,7 +2130,7 @@ export type OnDeleteInvoiceFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2206,7 +2158,7 @@ export type OnCreateJsaFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2234,7 +2186,7 @@ export type OnUpdateJsaFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2262,7 +2214,7 @@ export type OnDeleteJsaFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2298,7 +2250,7 @@ export type OnCreateCapillaryFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2334,7 +2286,7 @@ export type OnUpdateCapillaryFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2370,7 +2322,7 @@ export type OnDeleteCapillaryFormSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2390,7 +2342,7 @@ export type OnCreateTemplateSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2410,7 +2362,7 @@ export type OnUpdateTemplateSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2430,7 +2382,7 @@ export type OnDeleteTemplateSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2450,7 +2402,7 @@ export type OnCreateUserSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2470,7 +2422,7 @@ export type OnUpdateUserSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2490,7 +2442,7 @@ export type OnDeleteUserSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2510,7 +2462,7 @@ export type OnCreatePricingPlanSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2530,7 +2482,7 @@ export type OnUpdatePricingPlanSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
 
@@ -2550,6 +2502,6 @@ export type OnDeletePricingPlanSubscription = {
     updatedAt: string,
     _version: number,
     _deleted?: boolean | null,
-    _lastChangedAt: number,
+    _lastChangedAt: string,
   } | null,
 };
