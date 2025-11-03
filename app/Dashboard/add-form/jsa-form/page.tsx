@@ -7,8 +7,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs, { Dayjs } from "dayjs";
 import { generateClient } from 'aws-amplify/api';
-import { createJsaForm } from '@/src/graphql/mutations';
-import { CreateJsaFormInput, PersonInput } from '@/src/graphql/API';
+import {PersonInput } from '@/src/graphql/API';
 import { useRouter } from 'next/navigation';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { getTemplate } from '@/utils/template';
@@ -17,6 +16,9 @@ import type { AwsCredentialIdentity } from '@aws-sdk/types';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import DOMPurify from "dompurify";
+import { DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb';
+import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+
 
 
 
@@ -39,6 +41,11 @@ const s3Client = new S3Client({
 
 const lambdaClient = new LambdaClient({
   region: "us-east-1",
+  credentials: getCredentials,
+});
+
+const ddbClient = new DynamoDBClient({
+  region: 'us-east-1',
   credentials: getCredentials,
 });
 
@@ -516,7 +523,7 @@ const NewForm = () => {
             console.log('Final product uploaded to S3:', s3Url);
 
             // Format the form data to match the CreateJsaFormInput type
-            const jsaData: CreateJsaFormInput = {
+            const jsaData = {
                 WorkTicketID: formData.workTicketID,
                 CustomerName: sanitizeInput(formData.customerName),
                 CreatedBy:sanitizeInput(formData.createdBy),
@@ -531,19 +538,21 @@ const NewForm = () => {
                 FinalProductFile: s3Url,
                 _version: 1,
                 _lastChangedAt: new Date().toISOString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
             };
 
             console.log('Submitting JSA form data:', jsaData);
 
             // Submit the form data to the database
-            const response = await client.graphql({
-                query: createJsaForm,
-                variables: { input: jsaData }
-            });
+            await ddbClient.send(
+              new PutItemCommand({
+                TableName: 'JsaForm-ghr672m57fd2re7tckfmfby2e4-dev',
+                Item: marshall(jsaData),
+              })
+            );
             
-            console.log('Response:', response);
-
-            if (response.data.createJsaForm) {
+            
                 // Clear the form
                 setFormData({
                     workTicketID: "",
@@ -575,7 +584,7 @@ const NewForm = () => {
                 
                 // Show success message
                 alert('JSA form submitted successfully!');
-            }
+            
         } catch (error) {
             console.error('Error submitting JSA form:', error);
             alert('Error submitting JSA form. Please try again.');

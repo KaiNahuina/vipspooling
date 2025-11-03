@@ -14,7 +14,7 @@ import { fetchAuthSession } from 'aws-amplify/auth';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 import DOMPurify from 'dompurify';
 import heic2any from 'heic2any';
-import { DynamoDBClient, PutItemCommand, UpdateItemCommand} from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, PutItemCommand} from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
 
 const client = generateClient();
@@ -506,6 +506,7 @@ const CapillaryForm = () => {
     e.preventDefault();
 
     try {
+      
 
       // Basic validation for required fields
       const requiredFields: (keyof CapFormData)[] = [
@@ -533,6 +534,9 @@ const CapillaryForm = () => {
       }
       
       const nowISO = new Date().toISOString();
+      const submissionDate = dayjs(nowISO).format('YYYY-MM-DD');
+      const pdfFormData = {...formData, SubmissionDate: submissionDate};
+      const s3Url = await fillAndUploadPDF(pdfFormData, date);
 
       const reportData = {
         WorkTicketID: formData.WorkTicketID,
@@ -554,7 +558,7 @@ const CapillaryForm = () => {
         FluidPumped: sanitizeInput(formData.FluidPumped),
         TotalGallons: formData.TotalGallons,
         Notes: sanitizeInput(formData.Notes),
-        FinalProductFile: "",
+        FinalProductFile: s3Url,
         _version: 1,
         createdAt: nowISO,
         updatedAt: nowISO,
@@ -570,33 +574,15 @@ const CapillaryForm = () => {
           TableName: 'CapillaryForm-ghr672m57fd2re7tckfmfby2e4-dev',
           Item: marshall(reportData),
           ConditionExpression: 'attribute_not_exists(WorkTicketID)',
+          ReturnValues: 'NONE',
         })
       );
 
       console.log('DynamoDB Response:', Response);
-
-    
+      
+      console.log('PDF uploaded at', s3Url);
 
       
-      const submissionDate = dayjs(nowISO).format('YYYY-MM-DD');
-      const pdfFormData = {...formData, SubmissionDate: submissionDate};
-      const s3Url = await fillAndUploadPDF(pdfFormData, date);
-
-      const updatePayload = {
-        ':url': s3Url,
-        ':sub': submissionDate,
-        ':upd': nowISO,
-      }
-
-      await ddbClient.send(
-        new UpdateItemCommand({
-          TableName: 'CapillaryForm-ghr672m57fd2re7tckfmfby2e4-dev',
-          Key: marshall({WorkTicketID: formData.WorkTicketID}),
-          UpdateExpression: 'SET FinalProductFile = :url, SubmissionDate = :sub, updatedAt = :upd',
-          ExpressionAttributeValues: marshall(updatePayload),
-        })
-      )
-
       setFormData({
         WorkTicketID: '',
         SubmissionDate: '',
