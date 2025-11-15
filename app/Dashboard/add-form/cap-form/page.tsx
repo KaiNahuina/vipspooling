@@ -388,7 +388,7 @@ const CapillaryForm = () => {
           throw new Error(`Failed to parse Lambda response: ${parseError.message}`);
         }
 
-        let bodyPayload;
+        let bodyPayload: { workTicketID: any; };
         if (payload.body) {
           try {
             bodyPayload = JSON.parse(payload.body);
@@ -897,8 +897,8 @@ const CapillaryForm = () => {
                         className="border border-gray-400 rounded-lg px-4 py-3 text-sm w-full outline-none dark:border-gray-200 dark:bg-gray-10"
                       >
                         <option value="">Select a Size</option>
-                        <option value="1/4 inch">1/4"</option>
-                        <option value="3/8 inch">3/8"</option>
+                        <option value="1/4 inch">1/4&quot;</option>
+                        <option value="3/8 inch">3/8&quots;</option>
                         
                       </select>
                       

@@ -374,7 +374,7 @@ const NewForm = () => {
           throw new Error(`Failed to parse Lambda response: ${parseError.message}`);
         }
 
-        let bodyPayload;
+        let bodyPayload: { workTicketID: any; error: any; details: any; };
         if (payload.body) {
           try {
             bodyPayload = JSON.parse(payload.body);
