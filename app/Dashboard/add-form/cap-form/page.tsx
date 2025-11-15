@@ -448,7 +448,7 @@ const CapillaryForm = () => {
               if(typeof reader.result === 'string'){
                 newImages.push(reader.result);
               }
-              resolve;
+              resolve();
             };
             reader.onerror = () => {
               console.error(`Error reading HEIC file: ${file.name}`);

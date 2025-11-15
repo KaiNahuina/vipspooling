@@ -104,7 +104,7 @@ const fillAndUploadPDF = async (
     pdfDoc.addPage([595, 842]); // A4 size in points (72 DPI)
   }
 
-  let page = pdfDoc.getPage(0);
+  const page = pdfDoc.getPage(0);
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontSize = 7;
   const textColor = rgb(0, 0, 0);
