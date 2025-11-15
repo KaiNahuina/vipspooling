@@ -2,8 +2,11 @@
 import React from 'react'
 import { useRouter } from "next/navigation";
 
-const chooseForm = () => {
+const ChooseForm = () => {
   const router = useRouter();
+  const chooseForm = (pageName: string) => {
+    router.push(pageName);
+  }
 
   return (
     <>
@@ -11,7 +14,7 @@ const chooseForm = () => {
         <div className="flex items-start gap-4">
           <button
             type="button"
-            onClick={() => router.push('/Dashboard')}
+            onClick={() =>chooseForm('/Dashboard')}
             className="w-16 rounded-2xl h-14 relative group mt-2 mr-2"
           >
             <div className="bg-yellow-300 rounded-xl h-12 w-full grid place-items-center absolute left-0 top-0 group-hover:w-full z-10 duration-500">
@@ -36,7 +39,7 @@ const chooseForm = () => {
           <div className="flex-1">
             <div className="grid grid-cols-2 gap-4 mb-8">
               <div className="flex justify-end">
-                <a onClick={() => router.push("/Dashboard/add-form/invoice-form")} 
+                <a onClick={() =>chooseForm("/Dashboard/add-form/invoice-form")} 
                 className="cursor-pointer block max-w-sm p-6 bg-white rounded-lg 
                 shadow-sm hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition
                 flex flex-col items-center justify-center w-64 h-48"
@@ -56,7 +59,7 @@ const chooseForm = () => {
               </div>
 
               <div>
-                <a onClick={() => router.push("/Dashboard/add-form/jsa-form")}
+                <a onClick={() =>chooseForm("/Dashboard/add-form/jsa-form")}
                 className="cursor-pointer block max-w-sm p-6 bg-white rounded-lg 
                 shadow-sm hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition
                 flex flex-col items-center justify-center w-64 h-48"
@@ -77,7 +80,7 @@ const chooseForm = () => {
 
               
                 <div className='flex justify-end'>
-                    <a onClick={() => router.push("/Dashboard/add-form/cap-form")}
+                    <a onClick={() =>chooseForm("/Dashboard/add-form/cap-form")}
                     className="cursor-pointer block max-w-sm p-6 bg-white rounded-lg 
                     shadow-sm hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 transition
                     flex flex-col items-center justify-center w-64 h-48"
@@ -111,4 +114,4 @@ const chooseForm = () => {
   )
 }
 
-export default chooseForm
+export default ChooseForm
