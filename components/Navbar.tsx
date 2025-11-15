@@ -30,7 +30,7 @@ const Navbar = () => {
     const fetchUserProfile = async () => {
       try {
         setIsLoading(true);
-        const user = await getCurrentUser();
+        await getCurrentUser();
         const attributes = await fetchUserAttributes(); // Fetch user attributes directly
   
         console.log('User Attributes:', attributes);

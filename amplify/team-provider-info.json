@@ -27,7 +27,7 @@
           "EMAILSUBJECT": "Account Activation – Please Verify Your Email",
           "EMAILMESSAGE": "To complete your registration and activate your account, please click the link below:",
           "deploymentBucketName": "amplify-vipinvoices-dev-d981e-deployment",
-          "s3Key": "amplify-builds/vipinvoicesff20c633CustomMessage-647433616c684b663044-build.zip"
+          "s3Key": "amplify-builds/vipinvoicesff20c633CustomMessage-7936364c7579696c6f77-build.zip"
         },
         "vipinvoicesff20c633PostConfirmation": {
           "GROUP": "Operator",
