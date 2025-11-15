@@ -43,7 +43,7 @@ const LoginForm = () => {
         if (newPassword) {
           await confirmSignIn({ challengeResponse: newPassword });
           console.log("Password confirmed successfully!");
-          handleNewPasswordSubmit;
+          await handleNewPasswordSubmit(e);
         }
       }
       else {

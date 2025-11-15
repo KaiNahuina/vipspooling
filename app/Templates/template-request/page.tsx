@@ -3,7 +3,7 @@ import React, {useState} from 'react'
 import emailjs from '@emailjs/browser'
 
 
-const newTemplate = () => {
+const NewTemplate = () => {
     const [formType, setFormType] = useState('');
     const [formSpecs, setFormSpecs] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -95,4 +95,4 @@ const newTemplate = () => {
   )
 }
 
-export default newTemplate
+export default NewTemplate
