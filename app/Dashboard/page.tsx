@@ -16,6 +16,9 @@ import { S3Client, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { AwsCredentialIdentity } from "@aws-sdk/types";
 import { fetchAuthSession, fetchUserAttributes } from "aws-amplify/auth";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {ScanCommand, DynamoDBDocumentClient} from "@aws-sdk/lib-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 Amplify.configure(awsconfig);
 
@@ -36,6 +39,14 @@ const s3Client = new S3Client({
   region: "us-east-1",
   credentials: async () => getCredentials(),
 });
+
+const dbClient = DynamoDBDocumentClient.from(
+  new DynamoDBClient({
+    region: "us-east-1",
+    credentials: async () => getCredentials()
+  })
+);
+
 
 interface InvoiceForm {
   WorkTicketID: string;
@@ -183,89 +194,69 @@ const Dashboard = () => {
     }
   };
 
-  const fetchJsaForms = async (userName: string, userGroup: string | null) => {
+  const fetchInvoices = async () => {
     try {
-      const filter = {
-        and: [
-          userGroup === 'Operator' && userName ? { CreatedBy: { eq: userName } } : {},
-          { _deleted: { ne: true } },
-        ].filter(f => Object.keys(f).length > 0),
+      const params = {
+        TableName: "InvoiceForm-ghr672m57fd2re7tckfmfby2e4-dev", // update table name
+        FilterExpression: "#del <> :deleted",
+        ExpressionAttributeNames: {
+          "#del": "_deleted"
+        },
+        ExpressionAttributeValues: {
+          ":deleted": true
+        }
       };
-
-      console.log('fetchJsaForms - Filter:', filter, 'userName:', userName, 'userGroup:', userGroup);
-
-      const response = await client.graphql({
-        query: listJsaForms,
-        variables: { filter },
-        authMode: 'userPool',
-      });
-
-      console.log('fetchJsaForms - Response:', JSON.stringify(response, null, 2));
-      if (response.data) {
-        setJsaForms(response.data.listJsaForms.items);
-      } else if (response.errors) {
-        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
-      }
+  
+      const result = await dbClient.send(new ScanCommand(params));
+      setInvoices((result.Items || []) as InvoiceForm[]);
     } catch (err) {
-      console.error('Error fetching JSA forms:', err);
-      setError('Failed to fetch JSA forms. Please try again later.');
+      console.error("Error scanning InvoiceForm:", err);
+      setError("Failed to fetch invoices.");
     }
   };
-
-  const fetchInvoices = async (userName: string, userGroup: string | null) => {
+  
+  const fetchJsaForms = async () => {
     try {
-      const filter = {
-        and: [
-          userGroup === 'Operator' && userName ? { Spooler: { eq: userName } } : {},
-          { _deleted: { ne: true } },
-        ].filter(f => Object.keys(f).length > 0),
+      const params = {
+        TableName: 'JsaForm-ghr672m57fd2re7tckfmfby2e4-dev', // update table name
+        FilterExpression: "#del <> :deleted",
+        ExpressionAttributeNames: {
+          "#del": "_deleted"
+        },
+        ExpressionAttributeValues: {
+          ":deleted": true
+        }
       };
-      console.log('fetchInvoices - Filter:', filter, 'userName:', userName, 'userGroup:', userGroup);
-      const response = await client.graphql({
-        query: listInvoiceForms,
-        variables: { filter },
-        authMode: 'userPool',
-      });
-
-      console.log('fetchInvoices - Response:', JSON.stringify(response, null, 2));
-      if (response.data) {
-        setInvoices(response.data.listInvoiceForms.items);
-      } else if (response.errors) {
-        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
-      }
+  
+      const result = await dbClient.send(new ScanCommand(params));
+      setJsaForms((result.Items || []) as JsaForm[]);
     } catch (err) {
-      console.error('Error fetching invoices:', err);
-      setError('Failed to fetch invoices. Please try again later.');
+      console.error("Error scanning JsaForm:", err);
+      setError("Failed to fetch JSA forms.");
     }
   };
-
-  const fetchCapillary = async (userName: string, userGroup: string | null) => {
+  
+  const fetchCapillary = async () => {
     try {
-      const filter = {
-        and: [
-          userGroup === 'Operator' && userName ? { TechnicianName: { eq: userName } } : {},
-          { _deleted: { ne: true } },
-        ].filter(f => Object.keys(f).length > 0),
+      const params = {
+        TableName: 'CapillaryForm-ghr672m57fd2re7tckfmfby2e4-dev', // update table name
+        FilterExpression: "#del <> :deleted",
+        ExpressionAttributeNames: {
+          "#del": "_deleted"
+        },
+        ExpressionAttributeValues: {
+          ":deleted": true
+        }
       };
-      console.log('fetchCapillary - Filter:', filter);
-
-      const response = await client.graphql({
-        query: listCapillaryForms,
-        variables: { filter },
-        authMode: 'userPool',
-      });
-
-      console.log('fetchCapillary - Response:', JSON.stringify(response, null, 2));
-      if (response.data) {
-        setCapillaryForms(response.data.listCapillaryForms.items);
-      } else if (response.errors) {
-        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
-      }
+  
+      const result = await dbClient.send(new ScanCommand(params));
+      setCapillaryForms((result.Items || []) as CapillaryForm[]);
     } catch (err) {
-      console.error('Error fetching capillary forms:', err);
-      setError('Failed to fetch capillary forms. Please try again later.');
+      console.error("Error scanning CapillaryForm:", err);
+      setError("Failed to fetch capillary forms.");
     }
   };
+  
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -278,7 +269,8 @@ const Dashboard = () => {
       }
       console.log('fetchData - After checkAuth - userName:', name, 'userGroup:', group);
 
-      await Promise.all([fetchJsaForms(name, group), fetchInvoices(name, group), fetchCapillary(name, group)]);
+      await Promise.all([fetchJsaForms(), fetchInvoices(), fetchCapillary()]);
+
     } catch (err) {
       console.error('Error fetching data:', err);
       setError("Failed to fetch data. Please try again later.");
@@ -352,7 +344,7 @@ const Dashboard = () => {
                 console.log(`Deleted S3 object: ${item.FinalProductFile}`);
               }
             }
-            await fetchInvoices(userName, userGroup);
+            await fetchInvoices();
             return;
           } else if ("WorkTicketID" in item && "CustomerName" in item) {
             console.log('Deleting JsaForm:', { CustomerName: item.CustomerName, _version: item._version });
@@ -371,7 +363,7 @@ const Dashboard = () => {
                 console.log(`Deleted S3 object: ${item.FinalProductFile}`);
               }
             }
-            await fetchJsaForms(userName, userGroup);
+            await fetchJsaForms();
             return;
           } else if ("WorkTicketID" in item && "SubmissionDate" in item) {
             console.log('Deleting CapillaryForm:', { WorkTicketID: item.WorkTicketID, _version: item._version });
@@ -390,7 +382,7 @@ const Dashboard = () => {
                 console.log(`Deleted S3 object: ${item.FinalProductFile}`);
               }
             }
-            await fetchCapillary(userName, userGroup);
+            await fetchCapillary();
             return;
           } else {
             throw new Error("Unknown form type");
