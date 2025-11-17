@@ -6,7 +6,6 @@ import ErrorModal from '@/components/ErrorModal';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { generateClient } from 'aws-amplify/api';
-import { listInvoiceForms, listJsaForms, listCapillaryForms } from '@/src/graphql/queries';
 import { deleteInvoiceForm, deleteJsaForm, deleteCapillaryForm } from '@/src/graphql/mutations';
 import { getCapillaryForm, getInvoiceForm, getJsaForm } from '@/src/graphql/queries';
 import { getCurrentUser } from 'aws-amplify/auth';
@@ -197,7 +196,7 @@ const Dashboard = () => {
   const fetchInvoices = async () => {
     try {
       const params = {
-        TableName: "InvoiceForm-ghr672m57fd2re7tckfmfby2e4-dev", // update table name
+        TableName: "InvoiceForm-ghr672m57fd2re7tckfmfby2e4-dev",
         FilterExpression: "#del <> :deleted",
         ExpressionAttributeNames: {
           "#del": "_deleted"
@@ -218,7 +217,7 @@ const Dashboard = () => {
   const fetchJsaForms = async () => {
     try {
       const params = {
-        TableName: 'JsaForm-ghr672m57fd2re7tckfmfby2e4-dev', // update table name
+        TableName: 'JsaForm-ghr672m57fd2re7tckfmfby2e4-dev', 
         FilterExpression: "#del <> :deleted",
         ExpressionAttributeNames: {
           "#del": "_deleted"
@@ -239,7 +238,7 @@ const Dashboard = () => {
   const fetchCapillary = async () => {
     try {
       const params = {
-        TableName: 'CapillaryForm-ghr672m57fd2re7tckfmfby2e4-dev', // update table name
+        TableName: 'CapillaryForm-ghr672m57fd2re7tckfmfby2e4-dev', 
         FilterExpression: "#del <> :deleted",
         ExpressionAttributeNames: {
           "#del": "_deleted"
