@@ -11,6 +11,8 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { AwsCredentialIdentity } from '@aws-sdk/types';
 import { useAuth } from '@/components/ClientLayout';
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {ScanCommand, DynamoDBDocumentClient} from "@aws-sdk/lib-dynamodb";
 
 const client = generateClient();
 
@@ -28,6 +30,13 @@ const s3Client = new S3Client({
   region: 'us-east-1',
   credentials: getCredentials,
 });
+
+const dbClient = DynamoDBDocumentClient.from(
+  new DynamoDBClient({
+    region: "us-east-1",
+    credentials: async () => getCredentials()
+  })
+);
 
 interface Template {
   TemplateID: string;
@@ -93,25 +102,19 @@ const Templates = () => {
 
   const fetchTemplates = async () => {
     try {
-      console.log('Fetching templates...');
-      const response = await client.graphql({
-        query: listTemplates,
-        authMode: 'userPool',
-      });
-      console.log('Templates response:', response);
-      if (response.data?.listTemplates?.items) {
-        const fetchedTemplates = response.data.listTemplates.items.map((template: any) => ({
-          TemplateID: template.TemplateID,
-          TemplateDate: template.TemplateDate ?? null,
-          Content: template.Content || '',
-          file: template.file,
-        }));
-        console.log('Fetched templates from DynamoDB:', fetchedTemplates);
-        setTemplates(fetchedTemplates);
-      } else {
-        console.log('No templates found in response');
-        setTemplates([]);
-      }
+      const params = {
+        TableName: "Template-ghr672m57fd2re7tckfmfby2e4-dev",
+        FilterExpression: "#del <> :deleted",
+        ExpressionAttributeNames: {
+          "#del": "_deleted"
+        },
+        ExpressionAttributeValues: {
+          ":deleted": true
+        }
+      };
+  
+      const result = await dbClient.send(new ScanCommand(params));
+      setTemplates((result.Items || []) as Template[]);
     } catch (err) {
       console.error('Error fetching templates:', err);
       throw err;
@@ -120,25 +123,19 @@ const Templates = () => {
 
   const fetchPricingPlans = async () => {
     try {
-      console.log('Fetching pricing plans...');
-      const response = await client.graphql({
-        query: listPricingPlans,
-        authMode: 'userPool',
-      });
-      console.log('Pricing plans response:', response);
-      if (response.data?.listPricingPlans?.items) {
-        const fetchedPlans = response.data.listPricingPlans.items.map((plan: any) => ({
-          PlanID: plan.PlanID,
-          PlanDate: plan.PlanDate ?? null,
-          Description: plan.Description || '',
-          file: plan.file,
-        }));
-        console.log('Fetched pricing plans from DynamoDB:', fetchedPlans);
-        setPricingPlans(fetchedPlans);
-      } else {
-        console.log('No pricing plans found in response');
-        setPricingPlans([]);
-      }
+      const params = {
+        TableName: "PricingPlan-ghr672m57fd2re7tckfmfby2e4-dev",
+        FilterExpression: "#del <> :deleted",
+        ExpressionAttributeNames: {
+          "#del": "_deleted"
+        },
+        ExpressionAttributeValues: {
+          ":deleted": true
+        }
+      };
+  
+      const result = await dbClient.send(new ScanCommand(params));
+      setPricingPlans((result.Items || []) as PricingPlan[]);
     } catch (err) {
       console.error('Error fetching pricing plans:', err);
       throw err;
