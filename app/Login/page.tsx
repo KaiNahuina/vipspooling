@@ -19,7 +19,7 @@ const LoginForm = () => {
       try {
         await getCurrentUser();
         console.log("User already authenticated, redirecting to Main Page");
-        router.push("/Landing");
+        router.push("/Dashboard");
       } catch (err) {
         console.log("No authenticated user found");
       }
@@ -48,14 +48,15 @@ const LoginForm = () => {
       }
       else {
         console.log("Login successful", user);
-        router.push("/Landing");
+        router.push("/Dashboard");
       }
     } catch (err: any) {
       if (err.name === "UserAlreadyAuthenticatedException") {
         console.log("User already authenticated, redirecting to Main Page");
-        router.push("/Landing");
+        router.push("/Dashboard");
       } else {
         setError(err.message || "Invalid username or password.");
+        router.push("/Landing");
         console.error("Login error:", err);
       }
     }
@@ -68,7 +69,7 @@ const LoginForm = () => {
       if (newPassword) {
         await confirmSignIn({ challengeResponse: newPassword });
         console.log("Password confirmed successfully!");
-        router.push("/Landing");
+        router.push("/Dashboard");
       }
     } catch (err: any) {
       setError(err.message || "Error confirming the new password.");

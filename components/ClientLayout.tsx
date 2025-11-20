@@ -52,14 +52,14 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const noAuthRequired = ["/Login"];
+  const noAuthRequired = ["/Login", "/Landing", "/"];
 
   useEffect(() => {
     let isMounted = true; 
 
     async function checkAuth() {
       try {
-        if (noAuthRequired.includes(pathname) && isAuthenticated === null) {
+        if (noAuthRequired.includes(pathname)) {
           if (isMounted) {
             setIsAuthenticated(false);
             setPermissions(null);
@@ -138,7 +138,7 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isAuthenticated && pathname === "/Login") {
-      router.push("/Landing");
+      router.push("/Dashboard");
     }
   }, [isAuthenticated, pathname, router]);
 
@@ -151,13 +151,9 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
     <div className="w-4 h-4 rounded-full bg-gold-100 animate-bounce [animation-delay:-.5s]"></div>
   </div>);
 
-  // **Handle login page separately (without navbar & background)**
-  if (!isAuthenticated && pathname === "/Login") {
-    return (
-      <div className="h-screen w-screen flex justify-center items-center">
-        {children}
-      </div>
-    );
+  
+  if (!isAuthenticated && noAuthRequired.includes(pathname)) {
+    return <div>{children}</div>;
   }
 
   return (

@@ -49,20 +49,33 @@ const Landing = () => {
       {/* Hero Section */}
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-header-lg text-black dark:text-white mb-6">Welcome to VIP Invoices</h1>
+          <h1 className="text-header-lg text-black dark:text-white mb-6">
+            Welcome to VIP Invoices
+          </h1>
+
           <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-            VIP Invoices is your all-in-one solution for streamlined invoicing and payment management. 
-            Designed for businesses and freelancers, our platform simplifies the process of creating, 
+            VIP Invoices is your all-in-one solution for streamlined invoicing and payment management.
+            Designed for businesses and freelancers, our platform simplifies the process of creating,
             sending, and tracking invoices with ease and efficiency.
           </p>
-          <a
-            href="#contact"
-            className="px-6 py-3 bg-gold-200 hover:bg-gold-100 text-gray font-semibold 
+
+          <div className="flex justify-center gap-4">
+            <a
+              href="/Login"
+              className="px-6 py-3 bg-black text-white hover:bg-gray-800 font-semibold rounded-lg shadow-md transition ease-in duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+            >
+              Login
+            </a>
+
+            <a
+              href="#contact"
+              className="px-6 py-3 bg-gold-200 hover:bg-gold-100 text-gray font-semibold 
               rounded-lg shadow-md transition ease-in duration-200 focus:outline-none focus:ring-2 
               focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Get in Touch
-          </a>
+            >
+              Get in Touch
+            </a>
+          </div>
         </div>
       </section>
 
