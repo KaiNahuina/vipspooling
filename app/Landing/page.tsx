@@ -79,6 +79,25 @@ const Landing = () => {
         </div>
       </section>
 
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+        
+
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+            VIP Invoices data is used only for internal operations and never shared outside the company.
+          </p>
+
+          <div className="flex justify-center gap-4">
+            <a
+              href="/Privacy"
+              className="px-6 py-3 bg-black text-white hover:bg-gray-800 font-semibold rounded-lg shadow-md transition ease-in duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+            >
+              Privacy Policy
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-16 px-4 bg-transparent dark:bg-gray-800">
         <div className="max-w-4xl mx-auto">
@@ -178,6 +197,8 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      
     </div>
   )
 }

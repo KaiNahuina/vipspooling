@@ -52,7 +52,7 @@ function ClientLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const noAuthRequired = ["/Login", "/Landing", "/"];
+  const noAuthRequired = ["/Login", "/Landing", "/", "/Privacy"];
 
   useEffect(() => {
     let isMounted = true; 
